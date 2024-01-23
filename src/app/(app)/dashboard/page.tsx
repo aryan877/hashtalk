@@ -71,10 +71,13 @@ import {
 } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import client from '@/lib/apolloClient';
+import { MessageSchema } from '@/schemas/messageSchema';
 
 function UserDashboard() {
   // const [error, setError] = useState<ApolloError | undefined>(undefined);
-  const [blogData, setBlogData] = useState<string | undefined>('');
+  const [blogData, setBlogData] = useState<SinglePostByPublicationQuery | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
 
@@ -90,6 +93,10 @@ function UserDashboard() {
 
   const form = useForm<z.infer<typeof BlogUrlSchema>>({
     resolver: zodResolver(BlogUrlSchema),
+  });
+
+  const messageForm = useForm<z.infer<typeof MessageSchema>>({
+    resolver: zodResolver(MessageSchema),
   });
 
   // Extract slug from the first post
@@ -122,13 +129,19 @@ function UserDashboard() {
       });
 
       // Handle the query response
-      setBlogData(response.data.publication?.post?.content.markdown);
+      setBlogData(response.data);
       console.log(response.data.publication?.post?.content.markdown);
       setLoading(false);
     } catch (err) {
       setError(err);
       setLoading(false);
     }
+  };
+
+  const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {
+    // Logic to handle message submission
+    console.log(data.message);
+    // You can integrate the logic to send this message to your AI chatbot here
   };
 
   // Render the full post details
@@ -148,7 +161,7 @@ function UserDashboard() {
       <main className="flex">
         <ResizablePanelGroup direction="horizontal">
           {/* Chat History - Sidebar */}
-          <ResizablePanel defaultSize={20} minSize={10}>
+          <ResizablePanel defaultSize={20} minSize={10} maxSize={20}>
             <section
               className="w-full p-4 border-r flex flex-col"
               style={{ height: 'calc(100vh - 9rem)' }}
@@ -188,14 +201,13 @@ function UserDashboard() {
           </ResizablePanel>
 
           <ResizableHandle />
-
           {/* Main Content Area */}
           <ResizablePanel defaultSize={80} minSize={20}>
             <ResizablePanelGroup direction="horizontal">
               {/* Blog Loader Section */}
               <ResizablePanel defaultSize={33} minSize={15}>
                 <section
-                  className="w-full p-4 border-r"
+                  className="flex flex-col w-full p-4 border-r"
                   style={{ height: 'calc(100vh - 9rem)' }}
                 >
                   <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
@@ -220,14 +232,21 @@ function UserDashboard() {
                       <Button type="submit">Load Blog</Button>
                     </form>
                   </Form>
-                  <Card className="mt-4">
-                    <CardHeader>
-                      <CardTitle>Blog Title</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">Blog content preview...</p>
-                    </CardContent>
-                  </Card>
+
+                  {blogData && (
+                    <div className="flex flex-grow overflow-hidden">
+                      {' '}
+                      {/* Wrapper to take remaining space */}
+                      <Card className="flex flex-col w-full my-4 p-4 overflow-y-auto">
+                        <CardTitle className="mb-4">
+                          {blogData?.publication?.post?.title}
+                        </CardTitle>
+                        <ReactMarkdown className="flex-grow">
+                          {blogData?.publication?.post?.content.markdown}
+                        </ReactMarkdown>
+                      </Card>
+                    </div>
+                  )}
                 </section>
               </ResizablePanel>
 
@@ -256,19 +275,22 @@ function UserDashboard() {
                       </div>
                     ))}
                   </ScrollArea>
-                  {/* <Form {...form}>
+                  <Form {...messageForm}>
                     <form
-                      // onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-6"
+                      onSubmit={messageForm.handleSubmit(onMessageSubmit)}
+                      className="space-y-6 mt-4"
                     >
                       <FormField
-                        control={form.control}
-                        name="blogUrl"
+                        control={messageForm.control}
+                        name="message"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Your Message</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Enter Message" />
+                              <Textarea
+                                {...field}
+                                placeholder="Enter Message"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -276,7 +298,7 @@ function UserDashboard() {
                       />
                       <Button type="submit">Send Message</Button>
                     </form>
-                  </Form> */}
+                  </Form>
                 </section>
               </ResizablePanel>
             </ResizablePanelGroup>
