@@ -9,13 +9,14 @@ import { Message } from '@/model/User';
 import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
+import { z } from 'zod';
 import { Loader2, RefreshCcw } from 'lucide-react';
 import { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import { ChevronDownIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { AcceptMessageSchema } from '@/schemas/acceptMessageSchema';
+import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { ApolloError, useQuery } from '@apollo/client';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,6 +30,7 @@ import {
   PublicationFragment,
   SinglePostByPublicationDocument,
   SlugPostsByPublicationDocument,
+  SinglePostByPublicationQuery,
   StaticPageFragment,
 } from '../../../../generated/graphql';
 import {
@@ -59,104 +61,78 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import client from '@/lib/apolloClient';
 
 function UserDashboard() {
-  const [error, setError] = useState<ApolloError | undefined>(undefined);
+  // const [error, setError] = useState<ApolloError | undefined>(undefined);
+  const [blogData, setBlogData] = useState<string | undefined>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown | null>(null);
 
   // Fetch the slug of the first post
-  const {
-    data: postsData,
-    loading: postsLoading,
-    error: postsError,
-  } = useQuery<PostsByPublicationQuery, PostsByPublicationQueryVariables>(
-    PostsByPublicationDocument,
-    { variables: { host: 'aryan877.hashnode.dev', first: 1 } }
-  );
+  // const {
+  //   data: postsData,
+  //   loading: postsLoading,
+  //   error: postsError,
+  // } = useQuery<PostsByPublicationQuery, PostsByPublicationQueryVariables>(
+  //   PostsByPublicationDocument,
+  //   { variables: { host: 'aryan877.hashnode.dev', first: 1 } }
+  // );
 
-  // Extract slug from the first post
-  const firstPostSlug = postsData?.publication?.posts.edges[0]?.node?.slug;
-
-  // Fetch full post details using the slug
-  const {
-    data: fullPostData,
-    loading: fullPostLoading,
-    error: fullPostError,
-  } = useQuery(SinglePostByPublicationDocument, {
-    variables: { slug: firstPostSlug as string, host: 'aryan877.hashnode.dev' },
-    skip: !firstPostSlug,
+  const form = useForm<z.infer<typeof BlogUrlSchema>>({
+    resolver: zodResolver(BlogUrlSchema),
   });
 
-  if (fullPostLoading || postsLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  // Extract slug from the first post
+  // const firstPostSlug = postsData?.publication?.posts.edges[0]?.node?.slug;
+
+  // Fetch full post details using the slug
+  // const {
+  //   data: fullPostData,
+  //   loading: fullPostLoading,
+  //   error: fullPostError,
+  // } = useQuery(SinglePostByPublicationDocument, {
+  //   variables: { slug: firstPostSlug as string, host: 'aryan877.hashnode.dev' },
+  //   skip: !firstPostSlug,
+  // });
+
+  // if (fullPostLoading || postsLoading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error.message}</div>;
+
+  const onSubmit = async (data: z.infer<typeof BlogUrlSchema>) => {
+    try {
+      setLoading(true);
+      const url = new URL(data.blogUrl);
+      const host = url.hostname;
+      const slug = url.pathname.split('/').pop() as string;
+
+      // Now make the GraphQL query using axios or any other method
+      const response = await client.query({
+        query: SinglePostByPublicationDocument,
+        variables: { slug, host },
+      });
+
+      // Handle the query response
+      setBlogData(response.data.publication?.post?.content.markdown);
+      console.log(response.data.publication?.post?.content.markdown);
+      setLoading(false);
+    } catch (err) {
+      setError(err);
+      setLoading(false);
+    }
+  };
+
   // Render the full post details
   return (
-    // <div className="max-w-4xl mx-auto p-4 my-4">
-    //   <h1 className="text-3xl md:text-5xl font-bold mb-8">
-    //     {fullPostData?.publication?.post?.title}
-    //   </h1>
-    //   {fullPostData?.publication?.post?.content.markdown && (
-    //     <ReactMarkdown>
-    //       {fullPostData.publication.post.content.markdown}
-    //     </ReactMarkdown>
-    //   )}
-    //   {/* Render other details of the full post */}
-    // </div>
-    // <div className="flex flex-col h-screen">
-    //   <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
-    //     <h1 className="text-2xl font-bold">Blog Importer</h1>
-    //   </header>
-
-    //   <main className="flex-1 overflow-auto p-4 bg-gray-100 dark:bg-gray-900 flex justify-center">
-    //     <div className="w-full max-w-4xl">
-    //       {' '}
-    //       {/* Center and set maximum width */}
-    //       <form className="space-y-4">
-    //         <div className="space-y-2">
-    //           <Label htmlFor="blog-url">Blog URL</Label>
-    //           <Input id="blog-url" placeholder="Enter the URL of the blog" />
-    //         </div>
-    //         <Button className="w-full" type="submit">
-    //           Import Blog
-    //         </Button>
-    //       </form>
-    //       <Collapsible className="mt-8">
-    //         <div className="p-4 bg-white dark:bg-gray-800 rounded-t-lg">
-    //           <div className="flex justify-between items-center">
-    //             <h2 className="text-xl font-bold">Blog Content</h2>
-    //           </div>
-    //           <p className="text-gray-600 dark:text-gray-400 mt-4">
-    //             This is a sample of the blog content.
-    //           </p>
-    //           <CollapsibleTrigger>
-    //             <Button className="mt-4">Read More</Button>
-    //           </CollapsibleTrigger>
-    //         </div>
-    //         <CollapsibleContent className="p-4 bg-white dark:bg-gray-800 rounded-b-lg">
-    //           {/* Additional blog content goes here */}
-    //           <p className="text-gray-600 dark:text-gray-400">
-    //             This is collapsible.
-    //           </p>
-    //         </CollapsibleContent>
-    //       </Collapsible>
-    //       <div className="mt-8 p-4 bg-white dark:bg-gray-800 rounded-lg">
-    //         <h2 className="text-xl font-bold mb-4">Chat with Blog</h2>
-    //         <div className="flex flex-col space-y-4">{/* Chat content */}</div>
-    //         <form className="mt-4 flex space-x-2">
-    //           <Input
-    //             className="flex-1"
-    //             placeholder="Type your message here..."
-    //           />
-    //           <Button type="submit" onClick={async ()=>{
-    //             await axios.post<ApiResponse>(
-    //               '/api/embed'
-    //             );
-    //           }}>Send</Button>
-    //         </form>
-    //       </div>
-    //     </div>
-    //   </main>
-    // </div>
     <div style={{ height: 'calc(100vh - 5rem)' }}>
       <header className="flex items-center justify-between px-8 h-16 bg-gray-800 text-white">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -223,13 +199,27 @@ function UserDashboard() {
                   style={{ height: 'calc(100vh - 9rem)' }}
                 >
                   <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
-                  <form className="space-y-4">
-                    <div className="space-y-1">
-                      <Label htmlFor="blog-url">Blog URL</Label>
-                      <Input id="blog-url" placeholder="Enter blog URL" />
-                    </div>
-                    <Button type="submit">Load Blog</Button>
-                  </form>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="blogUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Blog URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter blog URL" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit">Load Blog</Button>
+                    </form>
+                  </Form>
                   <Card className="mt-4">
                     <CardHeader>
                       <CardTitle>Blog Title</CardTitle>
@@ -266,16 +256,27 @@ function UserDashboard() {
                       </div>
                     ))}
                   </ScrollArea>
-                  <form className="space-y-4 p-2">
-                    <div className="space-y-1">
-                      <Label htmlFor="ai-chat">Your Message</Label>
-                      <Textarea
-                        id="ai-chat"
-                        placeholder="Type your message here."
+                  {/* <Form {...form}>
+                    <form
+                      // onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="blogUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Your Message</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter Message" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                    <Button type="submit">Send</Button>
-                  </form>
+                      <Button type="submit">Send Message</Button>
+                    </form>
+                  </Form> */}
                 </section>
               </ResizablePanel>
             </ResizablePanelGroup>
@@ -287,3 +288,70 @@ function UserDashboard() {
 }
 
 export default UserDashboard;
+
+// <div className="max-w-4xl mx-auto p-4 my-4">
+//   <h1 className="text-3xl md:text-5xl font-bold mb-8">
+//     {fullPostData?.publication?.post?.title}
+//   </h1>
+//   {fullPostData?.publication?.post?.content.markdown && (
+//     <ReactMarkdown>
+//       {fullPostData.publication.post.content.markdown}
+//     </ReactMarkdown>
+//   )}
+//   {/* Render other details of the full post */}
+// </div>
+// <div className="flex flex-col h-screen">
+//   <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
+//     <h1 className="text-2xl font-bold">Blog Importer</h1>
+//   </header>
+
+//   <main className="flex-1 overflow-auto p-4 bg-gray-100 dark:bg-gray-900 flex justify-center">
+//     <div className="w-full max-w-4xl">
+//       {' '}
+//       {/* Center and set maximum width */}
+//       <form className="space-y-4">
+//         <div className="space-y-2">
+//           <Label htmlFor="blog-url">Blog URL</Label>
+//           <Input id="blog-url" placeholder="Enter the URL of the blog" />
+//         </div>
+//         <Button className="w-full" type="submit">
+//           Import Blog
+//         </Button>
+//       </form>
+//       <Collapsible className="mt-8">
+//         <div className="p-4 bg-white dark:bg-gray-800 rounded-t-lg">
+//           <div className="flex justify-between items-center">
+//             <h2 className="text-xl font-bold">Blog Content</h2>
+//           </div>
+//           <p className="text-gray-600 dark:text-gray-400 mt-4">
+//             This is a sample of the blog content.
+//           </p>
+//           <CollapsibleTrigger>
+//             <Button className="mt-4">Read More</Button>
+//           </CollapsibleTrigger>
+//         </div>
+//         <CollapsibleContent className="p-4 bg-white dark:bg-gray-800 rounded-b-lg">
+//           {/* Additional blog content goes here */}
+//           <p className="text-gray-600 dark:text-gray-400">
+//             This is collapsible.
+//           </p>
+//         </CollapsibleContent>
+//       </Collapsible>
+//       <div className="mt-8 p-4 bg-white dark:bg-gray-800 rounded-lg">
+//         <h2 className="text-xl font-bold mb-4">Chat with Blog</h2>
+//         <div className="flex flex-col space-y-4">{/* Chat content */}</div>
+//         <form className="mt-4 flex space-x-2">
+//           <Input
+//             className="flex-1"
+//             placeholder="Type your message here..."
+//           />
+//           <Button type="submit" onClick={async ()=>{
+//             await axios.post<ApiResponse>(
+//               '/api/embed'
+//             );
+//           }}>Send</Button>
+//         </form>
+//       </div>
+//     </div>
+//   </main>
+// </div>
