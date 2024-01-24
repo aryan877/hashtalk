@@ -1,9 +1,12 @@
-import React from 'react'
+'use client'
+
+import React from 'react';
+import { useParams } from 'next/navigation';
 
 function ChatPage() {
-  return (
-    <div>ChatPage</div>
-  )
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  return <div>id: {id}</div>;
 }
 
-export default ChatPage
+export default ChatPage;

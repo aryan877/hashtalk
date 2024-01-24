@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { toast, useToast } from '@/components/ui/use-toast';
 import client from '@/lib/apolloClient';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
@@ -42,6 +42,8 @@ import {
 import ChatHistory from '../components/ChatHistory';
 import BlogLoaderSection from '../components/BlogLoaderSection';
 import AIChatSection from '../components/AIChatSection';
+import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 function ChatDashboard() {
   // const [error, setError] = useState<ApolloError | undefined>(undefined);
@@ -49,7 +51,8 @@ function ChatDashboard() {
     null
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown | null>(null);
+  const [error, setError] = useState<ApolloError>();
+  const router = useRouter();
 
   // Fetch the slug of the first post
   // const {
@@ -60,14 +63,6 @@ function ChatDashboard() {
   //   PostsByPublicationDocument,
   //   { variables: { host: 'aryan877.hashnode.dev', first: 1 } }
   // );
-
-  const form = useForm<z.infer<typeof BlogUrlSchema>>({
-    resolver: zodResolver(BlogUrlSchema),
-  });
-
-  const messageForm = useForm<z.infer<typeof MessageSchema>>({
-    resolver: zodResolver(MessageSchema),
-  });
 
   // Extract slug from the first post
   // const firstPostSlug = postsData?.publication?.posts.edges[0]?.node?.slug;
@@ -102,6 +97,11 @@ function ChatDashboard() {
       const host = url.hostname;
       const slug = url.pathname.split('/').pop() as string;
 
+      toast({
+        title: 'Loading Blog Data',
+        description: 'Fetching blog post from Hashnode.',
+      });
+
       // GraphQL query
       const response = await client.query<
         SinglePostByPublicationQuery,
@@ -114,18 +114,33 @@ function ChatDashboard() {
       setBlogData(response.data);
 
       // Extracting message from the GraphQL response
-      const message = response.data.publication?.post?.content.markdown;
-      console.log('Sending message:', message);
+      const markdown = response.data.publication?.post?.content.markdown;
 
-      // Sending message to chatbot API
-      const chatbotResponse = await axios.post<ApiResponse>('api/embed', {
-        message,
+      const generateEmbeddingsToast = toast({
+        title: 'Please wait...',
+        description: 'Generating embeddings for the blog post.',
       });
 
-      console.log('Chatbot response:', chatbotResponse.data.message);
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error);
+      // Sending message to chatbot API
+      const chatCreationResponse = await axios.post<ApiResponse>('api/embed', {
+        markdown,
+        blogUrl: data.blogUrl,
+      });
+
+      router.push(
+        `/dashboard/chat/${chatCreationResponse.data.conversationId}`
+      );
+
+      generateEmbeddingsToast.dismiss()
+      
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err as ApolloError);
+      toast({
+        title: 'Error',
+        description: error?.message ?? 'Failed to update message settings',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -136,45 +151,24 @@ function ChatDashboard() {
   };
 
   return (
-    <div style={{ height: 'calc(100vh - 5rem)' }}>
-      <header className="flex items-center justify-between px-8 h-16 bg-gray-800 text-white">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <h1 className="text-lg font-semibold">AI Dashboard</h1>
-          <nav className="flex gap-4">
-            <Link className="hover:underline" href="#">
-              Importer
-            </Link>
-          </nav>
-        </div>
-      </header>
 
-      <main className="flex">
-        <ResizablePanelGroup direction="horizontal">
-          {/* Chat History - Sidebar */}
-          <ResizablePanel defaultSize={20} minSize={10} maxSize={20}>
-            <ChatHistory/>
-          </ResizablePanel>
+      <ResizablePanelGroup direction="horizontal">
+        {/* Blog Loader Section */}
+        <ResizablePanel defaultSize={33} minSize={15}>
+          <BlogLoaderSection
+            blogData={blogData}
+            onSubmit={onSubmit}
+            loading={loading}
+          />
+        </ResizablePanel>
 
-          <ResizableHandle />
-          {/* Main Content Area */}
-          <ResizablePanel defaultSize={80} minSize={20}>
-            <ResizablePanelGroup direction="horizontal">
-              {/* Blog Loader Section */}
-              <ResizablePanel defaultSize={33} minSize={15}>
-                <BlogLoaderSection blogData={blogData} onSubmit={onSubmit}/>
-              </ResizablePanel>
+        <ResizableHandle />
 
-              <ResizableHandle />
-
-              {/* AI Chat Section */}
-              <ResizablePanel defaultSize={67} minSize={15}>
-                <AIChatSection onMessageSubmit={onMessageSubmit}/>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </main>
-    </div>
+        {/* AI Chat Section */}
+        <ResizablePanel defaultSize={67} minSize={15}>
+          <AIChatSection onMessageSubmit={onMessageSubmit} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
   );
 }
 
