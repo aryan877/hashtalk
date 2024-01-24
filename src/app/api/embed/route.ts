@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       {
         success: true,
         message: 'Message received, processed, and stored in Pinecone',
-        conversationId: newConversation._id,
+        conversation: newConversation,
       },
       { status: 201 }
     );

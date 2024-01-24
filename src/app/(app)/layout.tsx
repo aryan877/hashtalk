@@ -11,7 +11,7 @@ import {
 import ChatHistory from './components/ChatHistory';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { ApiResponse } from '@/types/ApiResponse';
+import { GetChatsApiResponse } from '@/types/ApiResponse';
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     isLoading,
     isError,
     error,
-  } = useQuery<ApiResponse>({ queryKey: ['getChats'], queryFn: fetchChats });
+  } = useQuery<GetChatsApiResponse>({ queryKey: ['getChats'], queryFn: fetchChats });
 
   // if (isLoading) {
   //   return <div>Loading chats...</div>;

@@ -1,8 +1,18 @@
 import { Conversation } from "@/model/Conversation";
 
-export interface ApiResponse {
+export interface GetChatsApiResponse {
   success: boolean;
   message: string;
-  conversationId: string;
-  conversations: [Conversation]
+  conversations: Conversation[]
 };
+
+export interface EmbedApiResponse {
+  success: boolean;
+  message: string;
+  conversation: Conversation;
+}
+
+export interface StandardApiResponse {
+  success: boolean;
+  message: string;
+}

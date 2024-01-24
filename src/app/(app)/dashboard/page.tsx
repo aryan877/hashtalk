@@ -14,7 +14,7 @@ import { toast, useToast } from '@/components/ui/use-toast';
 import client from '@/lib/apolloClient';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
-import { ApiResponse } from '@/types/ApiResponse';
+import { GetChatsApiResponse, EmbedApiResponse } from '@/types/ApiResponse';
 import { ApolloError, useQuery } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
@@ -44,6 +44,7 @@ import BlogLoaderSection from '../components/BlogLoaderSection';
 import AIChatSection from '../components/AIChatSection';
 import { redirect } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 function ChatDashboard() {
   // const [error, setError] = useState<ApolloError | undefined>(undefined);
@@ -53,6 +54,8 @@ function ChatDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApolloError>();
   const router = useRouter();
+
+  const queryClient = useQueryClient();
 
   // Fetch the slug of the first post
   // const {
@@ -120,21 +123,39 @@ function ChatDashboard() {
       const markdown = response.data.publication?.post?.content.markdown;
 
       const generateEmbeddingsToast = toast({
-        title: 'Please wait...',
-        description: 'Generating embeddings for the blog post.',
+        title: 'Preparing Your Chat Session',
+        description:
+          'Analyzing and setting up the blog content for an interactive chat experience. Please hold on a moment.',
       });
 
-      const chatCreationResponse = await axios.post<ApiResponse>('api/embed', {
-        markdown,
-        blogUrl: data.blogUrl,
-        blogTitle,
-        blogSubtitle,
-        blogPublishDate,
-      });
+      const chatCreationResponse = await axios.post<EmbedApiResponse>(
+        'api/embed',
+        {
+          markdown,
+          blogUrl: data.blogUrl,
+          blogTitle,
+          blogSubtitle,
+          blogPublishDate,
+        }
+      );
 
       router.push(
-        `/dashboard/chat/${chatCreationResponse.data.conversationId}`
+        `/dashboard/chat/${chatCreationResponse.data.conversation._id}`
       );
+
+      const currentChats = queryClient.getQueryData<GetChatsApiResponse>([
+        'getChats',
+      ]);
+
+      if (currentChats && currentChats.conversations) {
+        queryClient.setQueryData<GetChatsApiResponse>(['getChats'], {
+          ...currentChats,
+          conversations: [
+            ...currentChats.conversations,
+            chatCreationResponse.data.conversation,
+          ],
+        });
+      }
 
       generateEmbeddingsToast.dismiss();
     } catch (err) {
