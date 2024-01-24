@@ -4,6 +4,7 @@ import './globals.css';
 import AuthProvider from '@/context/AuthProvider';
 import { Toaster } from '@/components/ui/toaster';
 import ApolloProviderWrapper from '@/context/ApolloProvider';
+import ReactQueryProviderWrapper from '@/context/QueryProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,6 +20,7 @@ interface RootLayoutProps {
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
+      <ReactQueryProviderWrapper>
       <ApolloProviderWrapper>
         <AuthProvider>
           <body className={inter.className}>
@@ -27,6 +29,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </body>
         </AuthProvider>
       </ApolloProviderWrapper>
+      </ReactQueryProviderWrapper>
     </html>
   );
 }
