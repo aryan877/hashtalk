@@ -17,9 +17,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AIChatSectionProps {
   onMessageSubmit: (data: any) => void; // Define the correct type for data
+  chatEnabled: boolean;
 }
 
-const AIChatSection: React.FC<AIChatSectionProps> = ({ onMessageSubmit }) => {
+const AIChatSection: React.FC<AIChatSectionProps> = ({
+  onMessageSubmit,
+  chatEnabled,
+}) => {
   const messageForm = useForm<z.infer<typeof MessageSchema>>({
     resolver: zodResolver(MessageSchema),
   });
@@ -31,7 +35,15 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({ onMessageSubmit }) => {
     >
       <h2 className="text-lg font-semibold mb-4">AI Chat</h2>
       <ScrollArea className="flex-grow p-4 bg-gray-100">
-        {/* Display chat messages here */}
+        {chatEnabled ? (
+          <></>
+        ) : (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-center text-gray-600">
+              Enter a Hashnode blog URL to enable chat.
+            </p>
+          </div>
+        )}
       </ScrollArea>
       <Form {...messageForm}>
         <form
@@ -39,6 +51,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({ onMessageSubmit }) => {
           className="space-y-6 mt-4"
         >
           <FormField
+            disabled={!chatEnabled}
             control={messageForm.control}
             name="message"
             render={({ field }) => (
@@ -51,7 +64,9 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({ onMessageSubmit }) => {
               </FormItem>
             )}
           />
-          <Button type="submit">Send Message</Button>
+          <Button disabled={!chatEnabled} type="submit">
+            Send Message
+          </Button>
         </form>
       </Form>
     </section>

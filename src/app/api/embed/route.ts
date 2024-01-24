@@ -17,7 +17,6 @@ const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 const embeddings = new OpenAIEmbeddings();
 const pineconeStore = new PineconeStore(embeddings, { pineconeIndex });
 
-
 /**
  * Handle POST requests to /api/pinecone
  * @param {Request} request - The incoming POST request
@@ -28,7 +27,8 @@ export async function POST(request: Request) {
 
   try {
     await dbConnect();
-    const { markdown, blogUrl } = await request.json();
+    const { markdown, blogUrl, blogTitle, blogSubtitle, blogPublishDate } =
+      await request.json();
 
     const session = await getServerSession(authOptions);
     const user: User = session?.user;
@@ -42,6 +42,9 @@ export async function POST(request: Request) {
     newConversation = await ConversationModel.create({
       userId: user._id,
       blogUrl,
+      blogTitle,
+      blogSubtitle,
+      blogPublishDate,
       markdown,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -86,8 +89,7 @@ export async function POST(request: Request) {
 
     // Delete associated data in Pinecone
     if (newConversation && newConversation._id) {
-      await pineconeStore.delete(
-        {
+      await pineconeStore.delete({
         filter: {
           conversationId: newConversation._id.toString(),
         },

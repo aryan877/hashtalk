@@ -114,6 +114,9 @@ function ChatDashboard() {
       setBlogData(response.data);
 
       // Extracting message from the GraphQL response
+      const blogTitle = response.data.publication?.post?.title;
+      const blogSubtitle = response.data.publication?.post?.subtitle;
+      const blogPublishDate = response.data.publication?.post?.publishedAt;
       const markdown = response.data.publication?.post?.content.markdown;
 
       const generateEmbeddingsToast = toast({
@@ -121,18 +124,19 @@ function ChatDashboard() {
         description: 'Generating embeddings for the blog post.',
       });
 
-      // Sending message to chatbot API
       const chatCreationResponse = await axios.post<ApiResponse>('api/embed', {
         markdown,
         blogUrl: data.blogUrl,
+        blogTitle,
+        blogSubtitle,
+        blogPublishDate,
       });
 
       router.push(
         `/dashboard/chat/${chatCreationResponse.data.conversationId}`
       );
 
-      generateEmbeddingsToast.dismiss()
-      
+      generateEmbeddingsToast.dismiss();
     } catch (err) {
       console.error('Error:', err);
       setError(err as ApolloError);
@@ -151,24 +155,23 @@ function ChatDashboard() {
   };
 
   return (
+    <ResizablePanelGroup direction="horizontal">
+      {/* Blog Loader Section */}
+      <ResizablePanel defaultSize={33} minSize={15}>
+        <BlogLoaderSection
+          blogData={blogData}
+          onSubmit={onSubmit}
+          loading={loading}
+        />
+      </ResizablePanel>
 
-      <ResizablePanelGroup direction="horizontal">
-        {/* Blog Loader Section */}
-        <ResizablePanel defaultSize={33} minSize={15}>
-          <BlogLoaderSection
-            blogData={blogData}
-            onSubmit={onSubmit}
-            loading={loading}
-          />
-        </ResizablePanel>
+      <ResizableHandle />
 
-        <ResizableHandle />
-
-        {/* AI Chat Section */}
-        <ResizablePanel defaultSize={67} minSize={15}>
-          <AIChatSection onMessageSubmit={onMessageSubmit} />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      {/* AI Chat Section */}
+      <ResizablePanel defaultSize={67} minSize={15}>
+        <AIChatSection onMessageSubmit={onMessageSubmit} chatEnabled={false} />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
 
