@@ -1,31 +1,15 @@
-import { Pinecone } from '@pinecone-database/pinecone';
+
+import { Pinecone, Index } from '@pinecone-database/pinecone';
 import { Document } from '@langchain/core/documents';
+import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { PineconeStore } from '@langchain/pinecone';
+import { PineconeStore, PineconeStoreParams } from '@langchain/pinecone';
 
 // Instantiate a new Pinecone client
 const pinecone = new Pinecone();
-const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX as string);
 
-// Predefined set of documents for demonstration purposes
-const dummyDocs = [
-  new Document({
-    metadata: { foo: 'bar' },
-    pageContent: 'pinecone is a vector db',
-  }),
-  new Document({
-    metadata: { foo: 'bar' },
-    pageContent: 'the quick brown fox jumped over the lazy dog',
-  }),
-  new Document({
-    metadata: { baz: 'qux' },
-    pageContent: 'lorem ipsum dolor sit amet',
-  }),
-  new Document({
-    metadata: { baz: 'qux' },
-    pageContent: 'pinecones are the woody fruiting body of a pine tree',
-  }),
-];
+// Ensure pineconeIndex is of the correct type
+const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 
 /**
  * Handle POST requests to /api/pinecone
@@ -34,19 +18,40 @@ const dummyDocs = [
  */
 export async function POST(request: Request) {
   try {
-    await PineconeStore.fromDocuments(dummyDocs, new OpenAIEmbeddings(), {
+    // Parse the incoming request body to extract the message
+    const { message } = await request.json();
+
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 2000,
+      chunkOverlap: 1,
+    });
+
+    const docOutput = await splitter.splitDocuments([
+      new Document({ pageContent: message, metadata: {
+        conversationId: 'abcd'
+      } }),
+    ]);
+
+    console.log('Received message:', docOutput);
+
+    // Process the document output with Pinecone
+    await PineconeStore.fromDocuments(docOutput, new OpenAIEmbeddings(), {
       pineconeIndex,
       maxConcurrency: 5,
     });
 
+    // Respond with a success message
     return Response.json(
-      { success: true, message: 'Dummy documents added successfully' },
+      {
+        success: true,
+        message: 'Message received, processed, and stored in Pinecone',
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error adding dummy documents:', error);
+    console.error('Error processing message:', error);
     return Response.json(
-      { success: false, message: 'Error adding dummy documents' },
+      { success: false, message: 'Error processing message' },
       { status: 500 }
     );
   }

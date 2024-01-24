@@ -1,77 +1,49 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/components/ui/use-toast';
-import { ApiResponse } from '@/types/ApiResponse';
-import { zodResolver } from '@hookform/resolvers/zod';
-import axios, { AxiosError } from 'axios';
-import { z } from 'zod';
-import { Loader2, RefreshCcw } from 'lucide-react';
-import { User } from 'next-auth';
-import { useSession } from 'next-auth/react';
-import { ChevronDownIcon } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
-import { ApolloError, useQuery } from '@apollo/client';
-import ReactMarkdown from 'react-markdown';
-import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
-import {
-  PostsByPublicationQuery,
-  PostsByPublicationQueryVariables,
-  PostsByPublicationDocument,
-  PageByPublicationDocument,
-  PostFullFragment,
-  PublicationFragment,
-  SinglePostByPublicationDocument,
-  SlugPostsByPublicationDocument,
-  SinglePostByPublicationQuery,
-  StaticPageFragment,
-} from '../../../../generated/graphql';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { MenuIcon } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardTitle,
-  CardHeader,
-  CardFooter,
-} from '@/components/ui/card';
-import {
-  CollapsibleTrigger,
-  CollapsibleContent,
-  Collapsible,
-} from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 import client from '@/lib/apolloClient';
+import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
+import { ApiResponse } from '@/types/ApiResponse';
+import { ApolloError, useQuery } from '@apollo/client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios, { AxiosError } from 'axios';
+import { ChevronDownIcon, Loader2, MenuIcon, RefreshCcw } from 'lucide-react';
+import { User } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import ReactMarkdown from 'react-markdown';
+import { z } from 'zod';
+import {
+  PageByPublicationDocument,
+  PostFullFragment,
+  PostsByPublicationDocument,
+  PostsByPublicationQuery,
+  PostsByPublicationQueryVariables,
+  PublicationFragment,
+  SinglePostByPublicationDocument,
+  SinglePostByPublicationQuery,
+  SinglePostByPublicationQueryVariables,
+  SlugPostsByPublicationDocument,
+  StaticPageFragment,
+} from '../../../../generated/graphql';
+import ChatHistory from '../components/ChatHistory';
+import BlogLoaderSection from '../components/BlogLoaderSection';
+import AIChatSection from '../components/AIChatSection';
 
-function UserDashboard() {
+function ChatDashboard() {
   // const [error, setError] = useState<ApolloError | undefined>(undefined);
   const [blogData, setBlogData] = useState<SinglePostByPublicationQuery | null>(
     null
@@ -116,33 +88,53 @@ function UserDashboard() {
   const onSubmit = async (data: z.infer<typeof BlogUrlSchema>) => {
     try {
       setLoading(true);
+
+      // Validate the data first
+      const validationResult = BlogUrlSchema.safeParse(data);
+      if (!validationResult.success) {
+        console.error('Validation failed:', validationResult.error);
+        setLoading(false);
+        return;
+      }
+
+      // Extract blog URL components
       const url = new URL(data.blogUrl);
       const host = url.hostname;
       const slug = url.pathname.split('/').pop() as string;
 
-      // Now make the GraphQL query using axios or any other method
-      const response = await client.query({
+      // GraphQL query
+      const response = await client.query<
+        SinglePostByPublicationQuery,
+        SinglePostByPublicationQueryVariables
+      >({
         query: SinglePostByPublicationDocument,
         variables: { slug, host },
       });
 
-      // Handle the query response
       setBlogData(response.data);
-      console.log(response.data.publication?.post?.content.markdown);
-      setLoading(false);
-    } catch (err) {
-      setError(err);
+
+      // Extracting message from the GraphQL response
+      const message = response.data.publication?.post?.content.markdown;
+      console.log('Sending message:', message);
+
+      // Sending message to chatbot API
+      const chatbotResponse = await axios.post<ApiResponse>('api/embed', {
+        message,
+      });
+
+      console.log('Chatbot response:', chatbotResponse.data.message);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error);
+    } finally {
       setLoading(false);
     }
   };
 
   const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {
-    // Logic to handle message submission
-    console.log(data.message);
-    // You can integrate the logic to send this message to your AI chatbot here
+    //chat with ai
   };
 
-  // Render the full post details
   return (
     <div style={{ height: 'calc(100vh - 5rem)' }}>
       <header className="flex items-center justify-between px-8 h-16 bg-gray-800 text-white">
@@ -160,42 +152,7 @@ function UserDashboard() {
         <ResizablePanelGroup direction="horizontal">
           {/* Chat History - Sidebar */}
           <ResizablePanel defaultSize={20} minSize={10} maxSize={20}>
-            <section
-              className="w-full p-4 border-r flex flex-col"
-              style={{ height: 'calc(100vh - 9rem)' }}
-            >
-              <header className="flex items-center justify-between p-4 border-b">
-                <h1 className="text-xl font-bold">Chat History</h1>
-                <Button variant="outline">New Chat</Button>
-              </header>
-              <ScrollArea className="h-full">
-                <div className="space-y-4 p-4">
-                  {Array.from({ length: 14 }, (_, index) => (
-                    <Card
-                      key={index}
-                      className="p-4 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      <div className="flex items-start justify-between">
-                        <h2 className="text-lg font-bold">Chat with Alice</h2>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost">
-                              <MenuIcon className="h-5 w-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-48">
-                            <DropdownMenuItem>Delete Chat</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Last message: Hi there!
-                      </p>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-            </section>
+            <ChatHistory/>
           </ResizablePanel>
 
           <ResizableHandle />
@@ -204,100 +161,14 @@ function UserDashboard() {
             <ResizablePanelGroup direction="horizontal">
               {/* Blog Loader Section */}
               <ResizablePanel defaultSize={33} minSize={15}>
-                <section
-                  className="flex flex-col w-full p-4 border-r"
-                  style={{ height: 'calc(100vh - 9rem)' }}
-                >
-                  <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-6"
-                    >
-                      <FormField
-                        control={form.control}
-                        name="blogUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Blog URL</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Enter blog URL" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit">Load Blog</Button>
-                    </form>
-                  </Form>
-
-                  {blogData && (
-                    <div className="flex flex-grow overflow-hidden">
-                      {' '}
-                      {/* Wrapper to take remaining space */}
-                      <Card className="flex flex-col w-full my-4 p-4 overflow-y-auto">
-                        <CardTitle className="mb-4">
-                          {blogData?.publication?.post?.title}
-                        </CardTitle>
-                        <ReactMarkdown className="flex-grow">
-                          {blogData?.publication?.post?.content.markdown}
-                        </ReactMarkdown>
-                      </Card>
-                    </div>
-                  )}
-                </section>
+                <BlogLoaderSection blogData={blogData} onSubmit={onSubmit}/>
               </ResizablePanel>
 
               <ResizableHandle />
 
               {/* AI Chat Section */}
               <ResizablePanel defaultSize={67} minSize={15}>
-                <section
-                  className="w-full p-4 flex flex-col"
-                  style={{ height: 'calc(100vh - 9rem)' }}
-                >
-                  <h2 className="text-lg font-semibold mb-4">AI Chat</h2>
-                  <ScrollArea className="flex-grow p-4 bg-gray-100">
-                    {Array.from({ length: 10 }).map((_, index) => (
-                      <div key={index} className="flex flex-col space-y-2">
-                        <div className="flex items-start">
-                          <span className="font-semibold">User:</span>
-                          <p className="ml-2">Hello, AI!</p>
-                        </div>
-                        <div className="flex items-start">
-                          <span className="font-semibold">AI:</span>
-                          <p className="ml-2">
-                            Hello, User! How can I assist you today?
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </ScrollArea>
-                  <Form {...messageForm}>
-                    <form
-                      onSubmit={messageForm.handleSubmit(onMessageSubmit)}
-                      className="space-y-6 mt-4"
-                    >
-                      <FormField
-                        control={messageForm.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Your Message</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="Enter Message"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit">Send Message</Button>
-                    </form>
-                  </Form>
-                </section>
+                <AIChatSection onMessageSubmit={onMessageSubmit}/>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
@@ -307,16 +178,4 @@ function UserDashboard() {
   );
 }
 
-export default UserDashboard;
-
-//         <form className="mt-4 flex space-x-2">
-//           <Input
-//             className="flex-1"
-//             placeholder="Type your message here..."
-//           />
-//           <Button type="submit" onClick={async ()=>{
-//             await axios.post<ApiResponse>(
-//               '/api/embed'
-//             );
-//           }}>Send</Button>
-//         </form>
+export default ChatDashboard;
