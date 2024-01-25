@@ -29,7 +29,9 @@ const embeddings = new OpenAIEmbeddings({
 });
 const pineconeStore = new PineconeStore(embeddings, { pineconeIndex });
 
-export const handler = async (event: SQSEvent) => {
+export const handler = async (
+  event: SQSEvent
+): Promise<{ statusCode: number; body: string }> => {
   const db = await connectToDatabase();
 
   for (const record of event.Records) {
@@ -109,4 +111,9 @@ export const handler = async (event: SQSEvent) => {
       throw error;
     }
   }
+  // Return a default response if no records are processed
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'No records to process' }),
+  };
 };
