@@ -125,7 +125,7 @@ function ChatDashboard() {
       const generateEmbeddingsToast = toast({
         title: 'Preparing Your Chat Session',
         description:
-          'Analyzing and setting up the blog content for an interactive chat experience. Please hold on a moment.',
+          'Please hold on a moment.',
       });
 
       const chatCreationResponse = await axios.post<EmbedApiResponse>(

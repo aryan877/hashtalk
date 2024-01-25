@@ -1,21 +1,17 @@
-import { Pinecone, Index } from '@pinecone-database/pinecone';
-import { Document } from '@langchain/core/documents';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { OpenAIEmbeddings } from '@langchain/openai';
-import { PineconeStore, PineconeStoreParams } from '@langchain/pinecone';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/model/User';
 import ConversationModel from '@/model/Conversation';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/options';
+import AWS from 'aws-sdk';
 
-// Instantiate a new Pinecone client
-const pinecone = new Pinecone();
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_KEY,
+  region: process.env.AWS_REGION,
+});
 
-// Ensure pineconeIndex is of the correct type
-const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
-const embeddings = new OpenAIEmbeddings();
-const pineconeStore = new PineconeStore(embeddings, { pineconeIndex });
+const sqs = new AWS.SQS();
 
 /**
  * Handle POST requests to /api/pinecone
@@ -50,31 +46,22 @@ export async function POST(request: Request) {
       updatedAt: new Date(),
     });
 
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 2000,
-      chunkOverlap: 1,
-    });
-
-    const docOutput = await splitter.splitDocuments([
-      new Document({
-        pageContent: markdown,
-        metadata: {
-          conversationId: newConversation._id.toString(),
-        },
+    // Prepare the message for SQS
+    const sqsMessage = {
+      QueueUrl: process.env.SQS_QUEUE_URL as string,
+      MessageBody: JSON.stringify({
+        conversationId: newConversation._id.toString(),
+        markdown,
       }),
-    ]);
+    };
 
-    console.log('Received message:', docOutput);
-
-    await PineconeStore.fromDocuments(docOutput, new OpenAIEmbeddings(), {
-      pineconeIndex,
-      maxConcurrency: 5,
-    });
+    // Send the message to SQS
+    await sqs.sendMessage(sqsMessage).promise();
 
     return Response.json(
       {
         success: true,
-        message: 'Message received, processed, and stored in Pinecone',
+        message: 'Message processed and sent to SQS',
         conversation: newConversation,
       },
       { status: 201 }
@@ -85,15 +72,6 @@ export async function POST(request: Request) {
     // Delete the created conversation in MongoDB
     if (newConversation && newConversation._id) {
       await ConversationModel.findByIdAndDelete(newConversation._id);
-    }
-
-    // Delete associated data in Pinecone
-    if (newConversation && newConversation._id) {
-      await pineconeStore.delete({
-        filter: {
-          conversationId: newConversation._id.toString(),
-        },
-      });
     }
 
     return Response.json(

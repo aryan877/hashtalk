@@ -13,7 +13,6 @@
     "@langchain/openai": "^0.0.12",
     "@pinecone-database/pinecone": "^2.0.1",
     "aws-lambda": "^1.0.7",
-    "langchain": "^0.1.6",
-    "mongodb": "^5.9.2"
+    "langchain": "^0.1.6"
   }
 }

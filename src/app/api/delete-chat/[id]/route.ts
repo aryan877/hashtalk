@@ -43,7 +43,7 @@ export async function DELETE(
       );
     }
 
-    await pineconeStore.delete({
+   await pineconeStore.delete({
       filter: {
         conversationId: chatId,
       },

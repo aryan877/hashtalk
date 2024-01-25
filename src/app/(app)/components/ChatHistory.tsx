@@ -33,6 +33,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
 
   const handleDeleteChat = async (chatId: string) => {
     try {
+      toast({
+        title: 'Chat Deleted',
+        description: 'The chat has been successfully deleted.',
+      });
       await axios.delete<StandardApiResponse>(`/api/delete-chat/${chatId}`);
       toast({
         title: 'Chat Deleted',
