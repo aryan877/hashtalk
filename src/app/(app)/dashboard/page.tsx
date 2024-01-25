@@ -6,10 +6,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { toast, useToast } from '@/components/ui/use-toast';
 import client from '@/lib/apolloClient';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
