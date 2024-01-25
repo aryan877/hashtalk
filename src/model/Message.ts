@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IMessage extends Document {
   userId: mongoose.Types.ObjectId;
-  conversationId: mongoose.Types.ObjectId;
+  conversationId: mongoose.Types.ObjectId | string;
   message: string;
   messageType: 'human' | 'ai';
   createdAt: Date;

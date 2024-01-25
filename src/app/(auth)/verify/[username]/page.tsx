@@ -9,8 +9,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
-import { ApiResponse } from '@/types/ApiResponse';
+import { toast, useToast } from '@/components/ui/use-toast';
+import { StandardApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
 import { useParams, useRouter } from 'next/navigation';
@@ -21,14 +21,13 @@ import { verifySchema } from '@/schemas/verifySchema';
 export default function VerifyAccount() {
   const router = useRouter();
   const params = useParams<{ username: string }>();
-  const { toast } = useToast();
   const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
     try {
-      const response = await axios.post<ApiResponse>(`/api/verify-code`, {
+      const response = await axios.post<StandardApiResponse>(`/api/verify-code`, {
         username: params.username,
         code: data.code,
       });
@@ -40,7 +39,7 @@ export default function VerifyAccount() {
 
       router.replace('/sign-in');
     } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
+      const axiosError = error as AxiosError<StandardApiResponse>;
       toast({
         title: 'Verification Failed',
         description:

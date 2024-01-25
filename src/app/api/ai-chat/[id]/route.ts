@@ -105,7 +105,7 @@ export async function POST(
     // Using the conversational retrieval chain for the follow-up question
     const followUpResult = await conversationalRetrievalChain.invoke({
       chat_history: chatHistory,
-      input: userMessage, // Use the user's message here
+      input: userMessage,
     });
 
     // Save AI's response
@@ -117,13 +117,11 @@ export async function POST(
     });
     await aiMessageDoc.save();
 
-    console.log(`Follow-up answer: ${followUpResult.answer}`);
-
     // Return the results
     return Response.json(
       {
         success: true,
-        message: followUpResult.answer,
+        message: aiMessageDoc,
         // results,
       },
       { status: 200 }
@@ -131,7 +129,7 @@ export async function POST(
   } catch (error) {
     console.error('Error in vector search:', error);
     return Response.json(
-      { success: false, message: 'Error during search' },
+      { success: false, message: 'Error during ai message generation' },
       { status: 500 }
     );
   }

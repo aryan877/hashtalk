@@ -1,4 +1,5 @@
 import React from 'react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; 
 import {
   Form,
   FormControl,
@@ -14,19 +15,34 @@ import { useForm } from 'react-hook-form';
 import { MessageSchema } from '@/schemas/messageSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { IMessage } from '@/model/Message';
+import { TemporaryIMessage } from '../dashboard/chat/[id]/page';
 
 interface AIChatSectionProps {
-  onMessageSubmit: (data: any) => void; // Define the correct type for data
+  onMessageSubmit: (data: any) => void;
   chatEnabled?: boolean;
+  messages?: IMessage[] | TemporaryIMessage[];
+  isLoading?: boolean;
+  isLoadingAIMessage?: boolean;
 }
 
 const AIChatSection: React.FC<AIChatSectionProps> = ({
   onMessageSubmit,
   chatEnabled = true,
+  messages,
+  isLoading,
+  isLoadingAIMessage,
 }) => {
   const messageForm = useForm<z.infer<typeof MessageSchema>>({
     resolver: zodResolver(MessageSchema),
   });
+
+   const {
+     handleSubmit,
+     control,
+     formState: { errors, isSubmitted },
+   } = messageForm;
+
 
   return (
     <section
@@ -34,17 +50,51 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
       style={{ height: 'calc(100vh - 9rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">AI Chat</h2>
-      <ScrollArea className="flex-grow p-4 bg-gray-100">
-        {chatEnabled ? (
-          <></>
-        ) : (
+      <div className="flex-grow overflow-auto p-4 pb-8 bg-gray-200">
+        {isLoading ? (
+          <div>Loading chats...</div>
+        ) : !chatEnabled ? (
           <div className="flex justify-center items-center h-full">
             <p className="text-center text-gray-600">
               Enter a Hashnode blog URL to enable chat.
             </p>
           </div>
+        ) : messages && messages.length > 0 ? (
+          messages.map((message) => (
+            <div
+              key={message._id}
+              className={`flex items-end ${
+                message.messageType === 'ai' ? 'justify-start' : 'justify-end'
+              } space-x-2 mb-8`}
+            >
+              {message.messageType === 'ai' && (
+                <Avatar>
+                  <AvatarImage alt="AI" src="/ai-avatar.jpg" />
+                  <AvatarFallback>AI</AvatarFallback>
+                </Avatar>
+              )}
+              <div
+                className={`max-w-1/2 p-4 rounded-lg  ${
+                  message.messageType === 'ai'
+                    ? 'bg-gray-100'
+                    : 'bg-blue-500 text-white'
+                }`}
+              >
+                {message.message}
+              </div>
+              {message.messageType === 'human' && (
+                <Avatar>
+                  <AvatarImage alt="User" src="/user-avatar.jpg" />
+                  <AvatarFallback>You</AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          ))
+        ) : (
+          <div>No messages yet, send a chat.</div>
         )}
-      </ScrollArea>
+        {isLoadingAIMessage && <div>Generating response...</div>}
+      </div>
       <Form {...messageForm}>
         <form
           onSubmit={messageForm.handleSubmit(onMessageSubmit)}
@@ -52,15 +102,17 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
         >
           <FormField
             disabled={!chatEnabled}
-            control={messageForm.control}
-            name="message"
+            control={control}
+            name="userMessage"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Your Message</FormLabel>
                 <FormControl>
                   <Textarea {...field} placeholder="Enter Message" />
                 </FormControl>
-                <FormMessage />
+                {isSubmitted && errors.userMessage && (
+                  <FormMessage>{errors.userMessage.message}</FormMessage>
+                )}
               </FormItem>
             )}
           />

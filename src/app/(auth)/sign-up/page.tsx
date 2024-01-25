@@ -1,6 +1,6 @@
 'use client';
 
-import { ApiResponse } from '@/types/ApiResponse';
+import { StandardApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -48,12 +48,12 @@ export default function SignUpForm() {
         setIsCheckingUsername(true);
         setUsernameMessage(''); // Reset message
         try {
-          const response = await axios.get<ApiResponse>(
+          const response = await axios.get<StandardApiResponse>(
             `/api/check-username-unique?username=${debouncedUsername}`
           );
           setUsernameMessage(response.data.message);
         } catch (error) {
-          const axiosError = error as AxiosError<ApiResponse>;
+          const axiosError = error as AxiosError<StandardApiResponse>;
           setUsernameMessage(
             axiosError.response?.data.message ?? 'Error checking username'
           );
@@ -68,7 +68,7 @@ export default function SignUpForm() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post<ApiResponse>('/api/sign-up', data);
+      const response = await axios.post<StandardApiResponse>('/api/sign-up', data);
 
       toast({
         title: 'Success',
@@ -81,7 +81,7 @@ export default function SignUpForm() {
     } catch (error) {
       console.error('Error during sign-up:', error);
 
-      const axiosError = error as AxiosError<ApiResponse>;
+      const axiosError = error as AxiosError<StandardApiResponse>;
 
       // Default error message
       let errorMessage = axiosError.response?.data.message;

@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/dbConnect';
 import ConversationModel from '@/model/Conversation';
+import MessageModel from '@/model/Message';
 import { ObjectId } from 'mongodb';
 import { User } from 'next-auth';
 import { getServerSession } from 'next-auth/next';
@@ -22,33 +23,39 @@ export async function GET(
     );
   }
 
-  console.log(user._id);
-
   try {
     // Check if the conversation belongs to the user
     const conversation = await ConversationModel.findOne({
       _id: new ObjectId(conversationId),
-      userId: user._id, // Assuming the user ID is stored in user._id
+      userId: user._id,
     });
 
     if (!conversation) {
       return Response.json(
-        { success: false, message: 'Conversation not found' },
+        {
+          success: false,
+          message: 'Conversation not found or access denied',
+        },
         { status: 404 }
       );
     }
 
-    // Return the fetched chat
+    // Fetch messages for the conversation, sorted by latest first
+    const messages = await MessageModel.find({
+      conversationId: new ObjectId(conversationId),
+    }).sort({ createdAt: 1 }); // Sorting by createdAt in ascending order
+
+    // Return the messages
     return Response.json(
-      { success: true, conversation },
+      { success: true, messages },
       {
         status: 200,
       }
     );
   } catch (error) {
-    console.error('Error fetching conversation:', error);
+    console.error('Error fetching messages:', error);
     return Response.json(
-      { success: false, message: 'Error fetching conversation' },
+      { success: false, message: 'Error fetching messages' },
       { status: 500 }
     );
   }
