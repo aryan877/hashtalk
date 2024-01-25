@@ -24,7 +24,10 @@ export async function GET(request: Request) {
     }
 
     // Fetch conversations associated with the user's ID
-    const conversations = await ConversationModel.find({ userId: user._id });
+    // and sort them by createdAt or updatedAt in descending order
+    const conversations = await ConversationModel.find({
+      userId: user._id,
+    }).sort({ createdAt: -1 });
 
     // Return a successful response with the list of conversations
     return Response.json(

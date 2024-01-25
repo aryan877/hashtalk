@@ -30,7 +30,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     isLoading,
     isError,
     error,
-  } = useQuery<GetChatsApiResponse>({ queryKey: ['getChats'], queryFn: fetchChats });
+  } = useQuery<GetChatsApiResponse>({
+    queryKey: ['getChats'],
+    queryFn: fetchChats,
+  });
 
   // if (isLoading) {
   //   return <div>Loading chats...</div>;
@@ -59,7 +62,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <main className="flex">
             <ResizablePanelGroup direction="horizontal">
               {/* Chat History - Sidebar */}
-              <ResizablePanel defaultSize={20} minSize={10}>
+              <ResizablePanel defaultSize={20} minSize={20}>
                 <ChatHistory
                   chats={chats?.conversations}
                   isLoading={isLoading}

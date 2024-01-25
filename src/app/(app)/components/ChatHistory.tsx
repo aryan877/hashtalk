@@ -95,54 +95,60 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
           </div>
         ) : chats && chats.length > 0 ? (
           <div className="space-y-4 p-4">
-            {chats.map((chat) => (
-              <Card
-                key={chat._id}
-                className="p-4 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <Link href={`/dashboard/chat/${chat._id}`} passHref>
-                  <div className="flex flex-col gap-2 cursor-pointer">
-                    <div className="flex justify-between items-start">
-                      <h2
-                        className="text-lg font-bold flex-1 pr-2"
+            {chats
+              .sort(
+                (a, b) =>
+                  new Date(b.createdAt).getTime() -
+                  new Date(a.createdAt).getTime()
+              )
+              .map((chat) => (
+                <Card
+                  key={chat._id}
+                  className="p-4 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Link href={`/dashboard/chat/${chat._id}`} passHref>
+                    <div className="flex flex-col gap-2 cursor-pointer">
+                      <div className="flex justify-between items-start">
+                        <h2
+                          className="text-lg font-bold flex-1 pr-2"
+                          style={{
+                            maxWidth: 'calc(100% - 40px)',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {chat.blogTitle}
+                        </h2>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MenuIcon className="h-5 w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteChat(chat._id)}
+                            >
+                              Delete Chat
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <p
+                        className="text-sm text-gray-500 dark:text-gray-400"
                         style={{
-                          maxWidth: 'calc(100% - 40px)',
                           overflow: 'hidden',
                           whiteSpace: 'nowrap',
                           textOverflow: 'ellipsis',
                         }}
                       >
-                        {chat.blogTitle}
-                      </h2>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost">
-                            <MenuIcon className="h-5 w-5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-48">
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteChat(chat._id)}
-                          >
-                            Delete Chat
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        {chat.blogSubtitle.substring(0, 50)}...
+                      </p>
                     </div>
-                    <p
-                      className="text-sm text-gray-500 dark:text-gray-400"
-                      style={{
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {chat.blogSubtitle.substring(0, 50)}...
-                    </p>
-                  </div>
-                </Link>
-              </Card>
-            ))}
+                  </Link>
+                </Card>
+              ))}
           </div>
         ) : (
           <div className="flex justify-center items-center h-full">
