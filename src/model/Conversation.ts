@@ -1,16 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Conversation extends Document {
-  userId: mongoose.Types.ObjectId; // Reference to the User
+  userId: mongoose.Types.ObjectId;
   blogTitle: string;
-  blogSubtitle: string; 
+  blogSubtitle: string;
   blogPublishDate: Date;
   blogUrl: string;
   markdown: string;
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 const ConversationSchema: Schema<Conversation> = new mongoose.Schema(
   {
