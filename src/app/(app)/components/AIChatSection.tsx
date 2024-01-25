@@ -17,12 +17,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AIChatSectionProps {
   onMessageSubmit: (data: any) => void; // Define the correct type for data
-  chatEnabled: boolean;
+  chatEnabled?: boolean;
 }
 
 const AIChatSection: React.FC<AIChatSectionProps> = ({
   onMessageSubmit,
-  chatEnabled,
+  chatEnabled = true,
 }) => {
   const messageForm = useForm<z.infer<typeof MessageSchema>>({
     resolver: zodResolver(MessageSchema),

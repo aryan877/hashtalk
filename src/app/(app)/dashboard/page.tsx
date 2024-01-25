@@ -178,7 +178,7 @@ function ChatDashboard() {
         <BlogLoaderSection
           blogData={blogData}
           onSubmit={onSubmit}
-          loading={loading}
+          isLoading={loading}
         />
       </ResizablePanel>
 

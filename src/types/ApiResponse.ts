@@ -3,7 +3,13 @@ import { Conversation } from "@/model/Conversation";
 export interface GetChatsApiResponse {
   success: boolean;
   message: string;
-  conversations: Conversation[]
+  conversations: Conversation[];
+};
+
+export interface GetChatApiResponse {
+  success: boolean;
+  message: string;
+  conversation: Conversation;
 };
 
 export interface EmbedApiResponse {

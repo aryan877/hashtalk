@@ -20,13 +20,13 @@ import { SinglePostByPublicationQuery } from '../../../../generated/graphql';
 interface BlogLoaderSectionProps {
   blogData: SinglePostByPublicationQuery | null;
   onSubmit: (data: any) => void; // Define the correct type for data
-  loading: boolean;
+  isLoading: boolean;
 }
 
 const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
   blogData,
   onSubmit,
-  loading
+  isLoading
 }) => {
   const form = useForm<z.infer<typeof BlogUrlSchema>>({
     resolver: zodResolver(BlogUrlSchema),
@@ -38,7 +38,7 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
       style={{ height: 'calc(100vh - 9rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
-      <Form {...form}>
+      {<Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
@@ -53,9 +53,9 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={loading}>Load Blog</Button>
+          <Button type="submit" disabled={isLoading}>Load Blog</Button>
         </form>
-      </Form>
+      </Form>}
 
       {blogData && (
         <div className="flex flex-grow overflow-hidden">

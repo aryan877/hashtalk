@@ -23,22 +23,22 @@ export async function GET(
 
   try {
     // Fetch the chat from MongoDB using the provided ID
-    const chat = await ConversationModel.findById(chatId);
-    if (!chat) {
+    const conversation = await ConversationModel.findById(chatId);
+    if (!conversation) {
       return new Response(
-        JSON.stringify({ success: false, message: 'Chat not found' }),
+        JSON.stringify({ success: false, message: 'Conversation not found' }),
         { status: 404 }
       );
     }
 
     // Return the fetched chat
-    return new Response(JSON.stringify({ success: true, chat }), {
+    return new Response(JSON.stringify({ success: true, conversation }), {
       status: 200,
     });
   } catch (error) {
-    console.error('Error fetching chat:', error);
+    console.error('Error fetching conversation:', error);
     return new Response(
-      JSON.stringify({ success: false, message: 'Error fetching chat' }),
+      JSON.stringify({ success: false, message: 'Error fetching conversation' }),
       { status: 500 }
     );
   }
