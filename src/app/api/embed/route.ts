@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
     // Prepare the message for SQS
     const sqsMessage = {
-      QueueUrl: process.env.SQS_QUEUE_URL as string,
+      QueueUrl: process.env.SQS_CREATE_EMBEDDINGS_QUEUE_URL as string,
       MessageBody: JSON.stringify({
         conversationId: newConversation._id.toString(),
         markdown,
