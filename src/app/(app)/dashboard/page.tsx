@@ -20,7 +20,6 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import ReactMarkdown from 'react-markdown';
 import { z } from 'zod';
 import {
   PageByPublicationDocument,
@@ -116,7 +115,7 @@ function ChatDashboard() {
       const blogTitle = response.data.publication?.post?.title;
       const blogSubtitle = response.data.publication?.post?.subtitle;
       const blogPublishDate = response.data.publication?.post?.publishedAt;
-      const markdown = response.data.publication?.post?.content.markdown;
+      const markdown = response.data.publication?.post?.content.html;
 
       const generateEmbeddingsToast = toast({
         title: 'Preparing Your Chat Session',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; 
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Form,
   FormControl,
@@ -19,7 +19,7 @@ import { IMessage } from '@/model/Message';
 import { TemporaryIMessage } from '../dashboard/chat/[id]/page';
 
 interface AIChatSectionProps {
-  onMessageSubmit: (data: any) => void;
+  onMessageSubmit: (data: z.infer<typeof MessageSchema>) => void;
   chatEnabled?: boolean;
   messages?: IMessage[] | TemporaryIMessage[];
   isLoading?: boolean;
@@ -37,12 +37,23 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
     resolver: zodResolver(MessageSchema),
   });
 
-   const {
-     handleSubmit,
-     control,
-     formState: { errors, isSubmitted },
-   } = messageForm;
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitted },
+  } = messageForm;
 
+  const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit(handleFormSubmit)();
+    }
+  };
+  const handleFormSubmit = (data: z.infer<typeof MessageSchema>) => {
+    onMessageSubmit(data);
+    reset({ userMessage: '' }); 
+  };
 
   return (
     <section
@@ -97,7 +108,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
       </div>
       <Form {...messageForm}>
         <form
-          onSubmit={messageForm.handleSubmit(onMessageSubmit)}
+          onSubmit={handleSubmit(handleFormSubmit)}
           className="space-y-6 mt-4"
         >
           <FormField
@@ -108,7 +119,11 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
               <FormItem>
                 <FormLabel>Your Message</FormLabel>
                 <FormControl>
-                  <Textarea {...field} placeholder="Enter Message" />
+                  <Textarea
+                    {...field}
+                    placeholder="Enter Message"
+                    onKeyDown={onKeyDown}
+                  />
                 </FormControl>
                 {isSubmitted && errors.userMessage && (
                   <FormMessage>{errors.userMessage.message}</FormMessage>

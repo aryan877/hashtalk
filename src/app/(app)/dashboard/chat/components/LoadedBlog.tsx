@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react';
 import {
   Form,
@@ -14,13 +15,14 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ReactMarkdown from 'react-markdown';
 import { Conversation } from '@/model/Conversation';
 import { useToast } from '@/components/ui/use-toast';
 import dayjs from 'dayjs';
+import DOMPurify from 'dompurify';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 dayjs.extend(advancedFormat);
 import { Clipboard } from 'lucide-react';
+import BlogCard from '@/app/(app)/components/BlogCard';
 
 interface LoadedBlogProps {
   conversation: Conversation | undefined;
@@ -38,13 +40,14 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
     });
   };
 
+  const cleanHTML = DOMPurify.sanitize(conversation?.markdown as string);
+
   return (
     <section
       className="flex flex-col w-full p-4 border-r"
       style={{ height: 'calc(100vh - 9rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
-      <h2 className="text-lg font-semibold mb-4">{conversation?.blogTitle}</h2>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
@@ -53,7 +56,6 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
       ) : conversation ? (
         <>
           <div className="mb-4">
-            <h3 className="text-md mb-2">{conversation.blogSubtitle}</h3>
             <div className="flex items-center mb-4">
               <input
                 type="text"
@@ -74,12 +76,13 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
               {dayjs(conversation.blogPublishDate).format('Do MMM YY, h:mm A')}
             </p>
           </div>
-
-          <Card className="flex flex-col w-full mb-4 p-4 overflow-y-auto">
-            <ReactMarkdown className="flex-grow">
-              {conversation.markdown}
-            </ReactMarkdown>
-          </Card>
+          <BlogCard
+            title={conversation.blogTitle}
+            subtitle={conversation.blogSubtitle}
+            contentMarkdown={
+              conversation.markdown
+            }
+          />
         </>
       ) : (
         <div>No data available.</div>

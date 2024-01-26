@@ -37,7 +37,6 @@ export type TemporaryIMessage = Pick<
   | '_id'
 >;
 
-
 function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -126,10 +125,12 @@ function ChatPage() {
       .join('');
   };
 
-  const onMessageSubmit = (messageContent: z.infer<typeof MessageSchema>) => {
+  const onMessageSubmit = (
+    data: z.infer<typeof MessageSchema>,
+  ) => {
     const tempMessage: TemporaryIMessage = {
       conversationId: id,
-      message: messageContent.userMessage,
+      message: data.userMessage,
       messageType: 'human',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -146,7 +147,7 @@ function ChatPage() {
     );
 
     // Perform the mutation
-    mutation.mutate(messageContent);
+    mutation.mutate(data);
   };
 
   return (
