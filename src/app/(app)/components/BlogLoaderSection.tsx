@@ -15,7 +15,6 @@ import { useForm } from 'react-hook-form';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SinglePostByPublicationQuery } from '../../../../generated/graphql';
-import DOMPurify from 'dompurify';
 import BlogCard from './BlogCard';
 
 interface BlogLoaderSectionProps {

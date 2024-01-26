@@ -23,8 +23,15 @@ export async function POST(request: Request) {
 
   try {
     await dbConnect();
-    const { markdown, blogUrl, blogTitle, blogSubtitle, blogPublishDate } =
-      await request.json();
+    const {
+      markdown,
+      blogUrl,
+      blogTitle,
+      blogSubtitle,
+      blogPublishDate,
+      coverImage,
+      tags,
+    } = await request.json();
 
     const session = await getServerSession(authOptions);
     const user: User = session?.user;
@@ -42,6 +49,8 @@ export async function POST(request: Request) {
       blogSubtitle,
       blogPublishDate,
       markdown,
+      coverImage,
+      tags,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

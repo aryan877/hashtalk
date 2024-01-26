@@ -1,31 +1,31 @@
 'use client';
 
-import React from 'react';
-import { useParams } from 'next/navigation';
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  dataTagSymbol,
-} from '@tanstack/react-query';
-import { z } from 'zod';
-import axios, { AxiosResponse } from 'axios';
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
   ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import LoadedBlog from '../components/LoadedBlog';
-import AIChatSection from '../../../components/AIChatSection';
-import {
-  GetChatsApiResponse,
-  GetChatApiResponse,
-  GetChatMessagesApiResponse,
-  AIChatApiResponse,
-} from '@/types/ApiResponse';
-import { MessageSchema } from '@/schemas/messageSchema';
 import { toast } from '@/components/ui/use-toast';
 import { IMessage } from '@/model/Message';
+import { MessageSchema } from '@/schemas/messageSchema';
+import {
+  ChatMessageApiResponse,
+  ChatMessagesApiResponse,
+  ConversationApiResponse,
+  ConversationsApiResponse,
+} from '@/types/ApiResponse';
+import {
+  dataTagSymbol,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import axios, { AxiosResponse } from 'axios';
+import { useParams } from 'next/navigation';
+import React, { useState } from 'react';
+import { z } from 'zod';
+import AIChatSection from '../../../components/AIChatSection';
+import LoadedBlog from '../components/LoadedBlog';
 
 export type TemporaryIMessage = Pick<
   IMessage,
@@ -40,10 +40,11 @@ export type TemporaryIMessage = Pick<
 function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch chat data
   const fetchChat = async (chatId: string) => {
-    const { data } = await axios.get<GetChatApiResponse>(
+    const { data } = await axios.get<ConversationApiResponse>(
       `/api/get-chat/${chatId}`
     );
     return data;
@@ -51,7 +52,7 @@ function ChatPage() {
 
   // Fetch messages
   const fetchMessages = async (chatId: string) => {
-    const { data } = await axios.get<GetChatMessagesApiResponse>(
+    const { data } = await axios.get<ChatMessagesApiResponse>(
       `/api/get-chat-messages/${chatId}`
     );
     return data;
@@ -62,7 +63,7 @@ function ChatPage() {
     data: conversationData,
     isLoading: isConversationLoading,
     error,
-  } = useQuery<GetChatApiResponse, Error>({
+  } = useQuery<ConversationApiResponse, Error>({
     queryKey: ['chat', id],
     queryFn: () => fetchChat(id),
   });
@@ -72,41 +73,127 @@ function ChatPage() {
     data: messageData,
     isLoading: isMessagesLoading,
     error: messagesError,
-  } = useQuery<GetChatMessagesApiResponse, Error>({
+  } = useQuery<ChatMessagesApiResponse, Error>({
     queryKey: ['messages', id],
     queryFn: () => fetchMessages(id),
   });
 
-  // const mutation = useMutation<AxiosResponse<AIChatApiResponse>, Error, NewMessage>({
-  //   mutationFn: (newMessage: NewMessage) =>
-  //     axios.post('/api/ai-chat/${id}', newMessage),
-  //     onSuccess: () => {
-  //       take the message returned from data and add it to the messageData.message array
-  //     }
-  // });
-
   const mutation = useMutation<
-    AxiosResponse<AIChatApiResponse>,
+    AxiosResponse<ChatMessageApiResponse>,
     Error,
-    z.infer<typeof MessageSchema>
+    Pick<IMessage, 'message'>
   >({
-    mutationFn: (newMessage: z.infer<typeof MessageSchema>) =>
-      axios.post(`/api/ai-chat/${id}`, newMessage),
-    onSuccess: (response) => {
-      const newMessage = response.data.message;
-      const conversationId = response.data.message.conversationId;
-      queryClient.setQueryData<GetChatMessagesApiResponse>(
-        ['messages', conversationId],
-        (oldData: GetChatMessagesApiResponse | undefined) => {
-          // Construct the new data object with all required properties
-          return {
-            messages: oldData
+    mutationFn: (newMessage) =>
+      axios.post(`/api/save-human-message/${id}`, newMessage),
+    onSuccess: async (response) => {
+      setLoading(true);
+
+      const humanMessage = response.data.message;
+
+      const updateTemporaryMessage = (newContent: string) => {
+        queryClient.setQueryData<ChatMessagesApiResponse>(
+          ['messages', id],
+          (oldData: ChatMessagesApiResponse | undefined) => {
+            return {
+              messages: oldData
+                ? oldData.messages.map((message) =>
+                    message._id === streamingTempMessageId
+                      ? { ...message, message: newContent }
+                      : message
+                  )
+                : [
+                    {
+                      ...humanMessage,
+                      message: newContent,
+                      _id: streamingTempMessageId,
+                    },
+                  ],
+              success: oldData?.success ?? true,
+            };
+          }
+        );
+      };
+
+      const updateQueryData = (
+        newMessage: TemporaryIMessage | IMessage,
+        removeTemp = false
+      ) => {
+        queryClient.setQueryData<ChatMessagesApiResponse>(
+          ['messages', id],
+          (oldData: ChatMessagesApiResponse | undefined) => {
+            let updatedMessages = oldData
               ? [...oldData.messages, newMessage]
-              : [newMessage],
-            success: oldData?.success ?? true,
-          };
+              : [newMessage];
+            if (removeTemp) {
+              updatedMessages = updatedMessages.filter(
+                (message) => message._id !== streamingTempMessageId
+              );
+            }
+            return {
+              messages: updatedMessages,
+              success: oldData?.success ?? true,
+            };
+          }
+        );
+      };
+
+      updateQueryData(humanMessage);
+
+      const streamingTempMessageId = generateTempObjectId();
+
+      const tempAIMessage: TemporaryIMessage = {
+        conversationId: id,
+        message: '',
+        messageType: 'ai',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        _id: streamingTempMessageId,
+      };
+
+      updateQueryData(tempAIMessage);
+
+      try {
+        const response = await fetch(`/api/ai-chat/${id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.body) {
+          throw new Error('Response body is null. Unable to read the stream.');
         }
-      );
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let receivedChunks = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          receivedChunks += chunk;
+
+          if (chunk.endsWith('}')) {
+            try {
+              const finalMessage = JSON.parse(chunk);
+              updateQueryData(finalMessage, true);
+            } catch (error) {
+              console.error('Error parsing final chunk:', error);
+            }
+          } else {
+            updateTemporaryMessage(receivedChunks);
+            console.log(messageData?.messages);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching response:', error);
+      } finally {
+        setLoading(false);
+      }
     },
     onError: (error) => {
       toast({
@@ -125,29 +212,8 @@ function ChatPage() {
       .join('');
   };
 
-  const onMessageSubmit = (
-    data: z.infer<typeof MessageSchema>,
-  ) => {
-    const tempMessage: TemporaryIMessage = {
-      conversationId: id,
-      message: data.userMessage,
-      messageType: 'human',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      _id: generateTempObjectId(), // Temporary ObjectId
-    };
-
-    // Optimistically update the UI with the temporary message
-    queryClient.setQueryData<GetChatMessagesApiResponse>(
-      ['messages', id],
-      (oldData: GetChatMessagesApiResponse | undefined) => ({
-        messages: oldData ? [...oldData.messages, tempMessage] : [tempMessage],
-        success: oldData?.success ?? true,
-      })
-    );
-
-    // Perform the mutation
-    mutation.mutate(data);
+  const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {
+    mutation.mutate({ message: data.userMessage });
   };
 
   return (
@@ -168,7 +234,7 @@ function ChatPage() {
           onMessageSubmit={onMessageSubmit}
           messages={messageData?.messages}
           isLoading={isMessagesLoading}
-          isLoadingAIMessage={mutation.isPending}
+          isLoadingAIMessage={loading}
         />
       </ResizablePanel>
     </ResizablePanelGroup>

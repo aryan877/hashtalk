@@ -1,24 +1,25 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { toast } from '@/components/ui/use-toast';
-import { usePathname } from 'next/navigation';
-import axios from 'axios';
-import { GetChatsApiResponse, StandardApiResponse } from '@/types/ApiResponse';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { MenuIcon } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 import { Conversation } from '@/model/Conversation';
+import {
+  ConversationsApiResponse,
+  StandardApiResponse,
+} from '@/types/ApiResponse';
 import { useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { MenuIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import React from 'react';
 
 interface ChatHistoryProps {
   chats: Conversation[] | undefined;
@@ -43,16 +44,16 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
       });
 
       // Get the current data in the cache for 'getChats'
-      const currentChats = queryClient.getQueryData<GetChatsApiResponse>([
+      const currentChats = queryClient.getQueryData<ConversationsApiResponse>([
         'getChats',
-      ]) as GetChatsApiResponse;
+      ]) as ConversationsApiResponse;
 
       // Filter out the deleted chat
       const updatedChats =
         currentChats?.conversations.filter((chat) => chat._id !== chatId) || [];
 
       // Update the cache with the new array of chats
-      queryClient.setQueryData<GetChatsApiResponse>(['getChats'], {
+      queryClient.setQueryData<ConversationsApiResponse>(['getChats'], {
         ...currentChats,
         conversations: updatedChats,
       });

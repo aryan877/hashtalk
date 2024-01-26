@@ -15,6 +15,11 @@ import { MessagesPlaceholder } from '@langchain/core/prompts';
 import MessageModel from '@/model/Message';
 import { VectorStoreRetriever } from '@langchain/core/vectorstores';
 import ConversationModel from '@/model/Conversation';
+import { HttpResponseOutputParser } from 'langchain/output_parsers';
+import { OpenAIStream, StreamingTextResponse } from 'ai';
+
+// export const runtime = 'edge';
+// export const dynamic = 'force-dynamic';
 
 // Pinecone client initialization
 const pinecone = new Pinecone();
@@ -36,6 +41,7 @@ export async function POST(
     const model = new ChatOpenAI({
       modelName: 'gpt-3.5-turbo',
       temperature: 0,
+      streaming: true,
     });
 
     // Session verification
@@ -61,16 +67,20 @@ export async function POST(
       );
     }
 
-    const { userMessage } = await request.json();
-
-    // Save the user's message
-    const userMessageDoc = new MessageModel({
-      userId: user._id,
+    // Retrieve the last message for this conversation
+    const lastMessage = await MessageModel.findOne({
       conversationId: new ObjectId(conversationId),
-      message: userMessage,
-      messageType: 'human',
-    });
-    await userMessageDoc.save();
+    }).sort({ _id: -1 });
+
+    // Check if the last message is from a human
+    if (!lastMessage || lastMessage.messageType !== 'human') {
+      return Response.json(
+        { success: false, message: 'No recent human message found' },
+        { status: 400 } // 400 Bad Request
+      );
+    }
+
+    const userMessage = lastMessage.message;
 
     // Retrieve all messages for this conversation
     const messages = await MessageModel.find({
@@ -103,29 +113,40 @@ export async function POST(
     );
 
     // Using the conversational retrieval chain for the follow-up question
-    const followUpResult = await conversationalRetrievalChain.invoke({
+    const followUpResult = await conversationalRetrievalChain.stream({
       chat_history: chatHistory,
       input: userMessage,
     });
 
-    // Save AI's response
-    const aiMessageDoc = new MessageModel({
-      userId: user._id,
-      conversationId: new ObjectId(conversationId),
-      message: followUpResult.answer,
-      messageType: 'ai',
-    });
-    await aiMessageDoc.save();
+    let streamedResult = '';
 
-    // Return the results
-    return Response.json(
-      {
-        success: true,
-        message: aiMessageDoc,
-        // results,
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+
+        for await (const chunk of followUpResult) {
+          if (chunk.answer !== undefined) {
+            streamedResult += chunk.answer;
+            controller.enqueue(encoder.encode(chunk.answer));
+          }
+        }
+
+        // Save AI's response to MongoDB after the stream ends
+        const aiMessageDoc = new MessageModel({
+          userId: user._id,
+          conversationId: new ObjectId(conversationId),
+          message: streamedResult,
+          messageType: 'ai',
+        });
+        await aiMessageDoc.save();
+
+        // Send the final chunk (the complete conversation)
+        controller.enqueue(encoder.encode(JSON.stringify(aiMessageDoc)));
+        controller.close();
       },
-      { status: 200 }
-    );
+    });
+
+    return new StreamingTextResponse(stream);
   } catch (error) {
     console.error('Error in vector search:', error);
     return Response.json(

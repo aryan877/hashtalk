@@ -10,14 +10,19 @@ import { toast, useToast } from '@/components/ui/use-toast';
 import client from '@/lib/apolloClient';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
-import { GetChatsApiResponse, EmbedApiResponse } from '@/types/ApiResponse';
+import {
+  ConversationApiResponse,
+  ConversationsApiResponse,
+} from '@/types/ApiResponse';
 import { ApolloError, useQuery } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { ChevronDownIcon, Loader2, MenuIcon, RefreshCcw } from 'lucide-react';
 import { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { redirect, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -34,12 +39,9 @@ import {
   SlugPostsByPublicationDocument,
   StaticPageFragment,
 } from '../../../../generated/graphql';
-import ChatHistory from '../components/ChatHistory';
-import BlogLoaderSection from '../components/BlogLoaderSection';
 import AIChatSection from '../components/AIChatSection';
-import { redirect } from 'next/navigation';
-import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
+import BlogLoaderSection from '../components/BlogLoaderSection';
+import ChatHistory from '../components/ChatHistory';
 
 function ChatDashboard() {
   // const [error, setError] = useState<ApolloError | undefined>(undefined);
@@ -116,14 +118,16 @@ function ChatDashboard() {
       const blogSubtitle = response.data.publication?.post?.subtitle;
       const blogPublishDate = response.data.publication?.post?.publishedAt;
       const markdown = response.data.publication?.post?.content.html;
+      const coverImage = response.data.publication?.post?.coverImage?.url;
+      const tags =
+        response.data.publication?.post?.tags?.map((tag) => tag.name) ?? [];
 
       const generateEmbeddingsToast = toast({
         title: 'Preparing Your Chat Session',
-        description:
-          'Please hold on a moment...',
+        description: 'Please hold on a moment...',
       });
 
-      const chatCreationResponse = await axios.post<EmbedApiResponse>(
+      const chatCreationResponse = await axios.post<ConversationApiResponse>(
         'api/embed',
         {
           markdown,
@@ -131,6 +135,8 @@ function ChatDashboard() {
           blogTitle,
           blogSubtitle,
           blogPublishDate,
+          coverImage,
+          tags,
         }
       );
 
@@ -138,12 +144,12 @@ function ChatDashboard() {
         `/dashboard/chat/${chatCreationResponse.data.conversation._id}`
       );
 
-      const currentChats = queryClient.getQueryData<GetChatsApiResponse>([
+      const currentChats = queryClient.getQueryData<ConversationsApiResponse>([
         'getChats',
       ]);
 
       if (currentChats && currentChats.conversations) {
-        queryClient.setQueryData<GetChatsApiResponse>(['getChats'], {
+        queryClient.setQueryData<ConversationsApiResponse>(['getChats'], {
           ...currentChats,
           conversations: [
             ...currentChats.conversations,

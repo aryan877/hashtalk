@@ -18,7 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Conversation } from '@/model/Conversation';
 import { useToast } from '@/components/ui/use-toast';
 import dayjs from 'dayjs';
-import DOMPurify from 'dompurify';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 dayjs.extend(advancedFormat);
 import { Clipboard } from 'lucide-react';
@@ -39,8 +38,6 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
       description: 'Blog URL has been copied to clipboard.',
     });
   };
-
-  const cleanHTML = DOMPurify.sanitize(conversation?.markdown as string);
 
   return (
     <section
@@ -79,9 +76,9 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
           <BlogCard
             title={conversation.blogTitle}
             subtitle={conversation.blogSubtitle}
-            contentMarkdown={
-              conversation.markdown
-            }
+            contentMarkdown={conversation.markdown}
+            coverImage={conversation.coverImage}
+            tags={conversation.tags}
           />
         </>
       ) : (

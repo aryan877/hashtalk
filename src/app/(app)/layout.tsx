@@ -1,17 +1,17 @@
 'use client';
 
-import React from 'react';
 import Navbar from '@/components/Navbar';
-import Link from 'next/link';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import ChatHistory from './components/ChatHistory';
+import { ConversationsApiResponse } from '@/types/ApiResponse';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { GetChatsApiResponse } from '@/types/ApiResponse';
+import Link from 'next/link';
+import React from 'react';
+import ChatHistory from './components/ChatHistory';
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     isLoading,
     isError,
     error,
-  } = useQuery<GetChatsApiResponse>({
+  } = useQuery<ConversationsApiResponse>({
     queryKey: ['getChats'],
     queryFn: fetchChats,
   });

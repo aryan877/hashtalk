@@ -52,7 +52,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
   };
   const handleFormSubmit = (data: z.infer<typeof MessageSchema>) => {
     onMessageSubmit(data);
-    reset({ userMessage: '' }); 
+    reset({ userMessage: '' });
   };
 
   return (
@@ -104,7 +104,11 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
         ) : (
           <div>No messages yet, send a chat.</div>
         )}
-        {isLoadingAIMessage && <div>Generating response...</div>}
+        {isLoadingAIMessage && (
+          <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
+            🤖 AI Brainstorming in Progress...
+          </p>
+        )}
       </div>
       <Form {...messageForm}>
         <form

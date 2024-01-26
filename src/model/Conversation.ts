@@ -3,10 +3,12 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface Conversation extends Document {
   userId: mongoose.Types.ObjectId;
   blogTitle: string;
-  blogSubtitle: string;
+  blogSubtitle?: string;
   blogPublishDate: Date;
   blogUrl: string;
   markdown: string;
+  coverImage?: string;
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +26,7 @@ const ConversationSchema: Schema<Conversation> = new mongoose.Schema(
     },
     blogSubtitle: {
       type: String,
-      required: [true, 'Blog subtitle is required'],
+      required: false
     },
     blogPublishDate: {
       type: Date,
@@ -37,6 +39,14 @@ const ConversationSchema: Schema<Conversation> = new mongoose.Schema(
     markdown: {
       type: String,
       required: [true, 'Markdown content is required'],
+    },
+    coverImage: {
+      type: String, 
+      required: false,
+    },
+    tags: {
+      type: [String],
+      required: false,
     },
     createdAt: {
       type: Date,
