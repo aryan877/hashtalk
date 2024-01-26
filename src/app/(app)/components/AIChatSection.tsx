@@ -24,6 +24,7 @@ interface AIChatSectionProps {
   messages?: IMessage[] | TemporaryIMessage[];
   isLoading?: boolean;
   isLoadingAIMessage?: boolean;
+  isSendingHumanMessage?: boolean;
 }
 
 const AIChatSection: React.FC<AIChatSectionProps> = ({
@@ -32,6 +33,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
   messages,
   isLoading,
   isLoadingAIMessage,
+  isSendingHumanMessage,
 }) => {
   const messageForm = useForm<z.infer<typeof MessageSchema>>({
     resolver: zodResolver(MessageSchema),
@@ -88,7 +90,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
                 className={`max-w-1/2 p-4 rounded-lg  ${
                   message.messageType === 'ai'
                     ? 'bg-gray-100'
-                    : 'bg-blue-500 text-white'
+                    : 'bg-blue-600 text-white'
                 }`}
               >
                 {message.message}
@@ -106,7 +108,12 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
         )}
         {isLoadingAIMessage && (
           <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-            🤖 AI Brainstorming in Progress...
+            🤖 Generating Response...
+          </p>
+        )}
+        {isSendingHumanMessage && (
+          <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
+            Sending Message...
           </p>
         )}
       </div>

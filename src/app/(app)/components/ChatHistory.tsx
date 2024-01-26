@@ -89,7 +89,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
             }
           }}
         >
-          <Button variant="outline">New Chat</Button>
+          <Button variant="outline" className='ml-4'>New Chat</Button>
         </Link>
       </header>
       <div className="h-full overflow-y-auto">
@@ -147,7 +147,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
                           textOverflow: 'ellipsis',
                         }}
                       >
-                        {chat.blogSubtitle.substring(0, 50)}...
+                        {chat.blogSubtitle?.substring(0, 50)}...
                       </p>
                     </div>
                   </Link>

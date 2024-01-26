@@ -41,6 +41,8 @@ function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState<boolean>(false);
+  const [sendingHumanMessage, setSendingHumanMessage] =
+    useState<boolean>(false);
 
   // Fetch chat data
   const fetchChat = async (chatId: string) => {
@@ -87,9 +89,8 @@ function ChatPage() {
       axios.post(`/api/save-human-message/${id}`, newMessage),
     onSuccess: async (response) => {
       setLoading(true);
-
+      setSendingHumanMessage(false);
       const humanMessage = response.data.message;
-
       const updateTemporaryMessage = (newContent: string) => {
         queryClient.setQueryData<ChatMessagesApiResponse>(
           ['messages', id],
@@ -192,7 +193,6 @@ function ChatPage() {
       } catch (error) {
         console.error('Error fetching response:', error);
       } finally {
-        setLoading(false);
       }
     },
     onError: (error) => {
@@ -201,6 +201,10 @@ function ChatPage() {
         description: error.message,
         variant: 'destructive',
       });
+    },
+    onSettled: () => {
+      setLoading(false);
+      setSendingHumanMessage(false);
     },
   });
 
@@ -214,6 +218,7 @@ function ChatPage() {
 
   const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {
     mutation.mutate({ message: data.userMessage });
+    setSendingHumanMessage(true);
   };
 
   return (
@@ -235,6 +240,7 @@ function ChatPage() {
           messages={messageData?.messages}
           isLoading={isMessagesLoading}
           isLoadingAIMessage={loading}
+          isSendingHumanMessage={sendingHumanMessage}
         />
       </ResizablePanel>
     </ResizablePanelGroup>
