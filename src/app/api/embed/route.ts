@@ -1,13 +1,13 @@
 import dbConnect from '@/lib/dbConnect';
-import { User } from '@/model/User';
 import ConversationModel from '@/model/Conversation';
+import { User } from '@/model/User';
+import AWS from 'aws-sdk';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/options';
-import AWS from 'aws-sdk';
 
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: process.env.AWS_REGION,
 });
 
