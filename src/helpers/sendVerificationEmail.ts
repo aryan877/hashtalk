@@ -9,7 +9,7 @@ export async function sendVerificationEmail(
 ): Promise<StandardApiResponse> {
   try {
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: process.env.EMAIL as string,
       to: email,
       subject: 'HashTalk Verification Code',
       react: VerificationEmail({ username, otp: verifyCode }),
