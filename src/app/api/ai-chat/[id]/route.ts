@@ -18,6 +18,8 @@ import ConversationModel from '@/model/Conversation';
 import { HttpResponseOutputParser } from 'langchain/output_parsers';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 
+export const maxDuration = 300;
+
 // Pinecone client initialization
 const pinecone = new Pinecone();
 const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
