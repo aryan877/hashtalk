@@ -7,9 +7,15 @@ export const config = {
 };
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  console.log('logger', token)
-  
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName:
+      process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+  });
+
   const url = request.nextUrl;
 
   // Redirect to dashboard if the user is already authenticated
