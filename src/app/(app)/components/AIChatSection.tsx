@@ -87,7 +87,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
                 </Avatar>
               )}
               <div
-                className={`max-w-1/2 p-4 rounded-lg  ${
+                className={`p-4  max-w-md rounded-lg ${
                   message.messageType === 'ai'
                     ? 'bg-gray-100'
                     : 'bg-blue-600 text-white'
