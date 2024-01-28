@@ -117,7 +117,7 @@ function ChatDashboard() {
       const blogTitle = response.data.publication?.post?.title;
       const blogSubtitle = response.data.publication?.post?.subtitle;
       const blogPublishDate = response.data.publication?.post?.publishedAt;
-      const markdown = response.data.publication?.post?.content.html;
+      const markdown = response.data.publication?.post?.content.markdown;
       const coverImage = response.data.publication?.post?.coverImage?.url;
       const tags =
         response.data.publication?.post?.tags?.map((tag) => tag.name) ?? [];
@@ -179,7 +179,7 @@ function ChatDashboard() {
   return (
     <ResizablePanelGroup direction="horizontal">
       {/* Blog Loader Section */}
-      <ResizablePanel defaultSize={33} minSize={15}>
+      <ResizablePanel defaultSize={50} minSize={15}>
         <BlogLoaderSection
           blogData={blogData}
           onSubmit={onSubmit}
@@ -190,7 +190,7 @@ function ChatDashboard() {
       <ResizableHandle />
 
       {/* AI Chat Section */}
-      <ResizablePanel defaultSize={67} minSize={15}>
+      <ResizablePanel defaultSize={50} minSize={15}>
         <AIChatSection onMessageSubmit={onMessageSubmit} chatEnabled={false} />
       </ResizablePanel>
     </ResizablePanelGroup>

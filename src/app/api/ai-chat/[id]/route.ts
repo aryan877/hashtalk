@@ -38,7 +38,7 @@ export async function POST(
     await dbConnect();
 
     const model = new ChatOpenAI({
-      modelName: 'gpt-3.5-turbo',
+      modelName: 'gpt-3.5-turbo-1106',
       temperature: 0,
       streaming: true,
     });
@@ -81,10 +81,12 @@ export async function POST(
 
     const userMessage = lastMessage.message;
 
-    // Retrieve all messages for this conversation
-    const messages = await MessageModel.find({
-      conversationId: new ObjectId(conversationId),
-    });
+    const messages = await MessageModel.aggregate([
+      { $match: { conversationId: new ObjectId(conversationId) } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 8 },
+      { $sort: { createdAt: 1 } },
+    ]);
 
     // Build chat history from retrieved messages
     const chatHistory = messages.map((msg) =>
@@ -181,7 +183,7 @@ async function setupHistoryAwareRetrievalChain(
   const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
     [
       'system',
-      "Answer the user's questions based on the below context:\n\n{context}",
+      "Answer the user's questions based on the below context:\n\n{context}. Strictly answer in markdown.",
     ],
     new MessagesPlaceholder('chat_history'),
     ['user', '{input}'],

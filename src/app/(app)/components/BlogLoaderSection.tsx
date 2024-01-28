@@ -1,4 +1,5 @@
-import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -7,13 +8,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { z } from 'zod';
-import { Card, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { SinglePostByPublicationQuery } from '../../../../generated/graphql';
 import BlogCard from './BlogCard';
 
@@ -35,7 +35,7 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
   return (
     <section
       className="flex flex-col w-full p-4 border-r"
-      style={{ height: 'calc(100vh - 9rem)' }}
+      style={{ height: 'calc(100vh - 5rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
       {
@@ -63,9 +63,11 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
       <BlogCard
         title={blogData?.publication?.post?.title}
         subtitle={blogData?.publication?.post?.subtitle as string}
-        contentMarkdown={blogData?.publication?.post?.content?.markdown as string}
+        contentMarkdown={
+          blogData?.publication?.post?.content?.markdown as string
+        }
         coverImage={blogData?.publication?.post?.coverImage?.url as string}
-        tags={blogData?.publication?.post?.tags?.map(tag=>tag.name)}
+        tags={blogData?.publication?.post?.tags?.map((tag) => tag.name)}
       />
     </section>
   );

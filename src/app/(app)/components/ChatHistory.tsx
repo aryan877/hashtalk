@@ -73,7 +73,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
   return (
     <section
       className="w-full p-4 border-r flex flex-col"
-      style={{ height: 'calc(100vh - 9rem)' }}
+      style={{ height: 'calc(100vh - 5rem)' }}
     >
       <header className="flex items-center justify-between p-4 border-b">
         <h1 className="text-xl font-bold">Chat History</h1>
@@ -89,7 +89,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ chats, isLoading }) => {
             }
           }}
         >
-          <Button variant="outline" className='ml-4'>New Chat</Button>
+          <Button variant="outline" className="ml-4">
+            New Chat
+          </Button>
         </Link>
       </header>
       <div className="h-full overflow-y-auto">

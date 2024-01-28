@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MarkdownToHtml } from './MarkdownToHtml';
+import dayjs from 'dayjs';
 
 interface BlogCardProps {
   title?: string;
@@ -9,6 +11,7 @@ interface BlogCardProps {
   contentMarkdown?: string;
   coverImage?: string;
   tags?: string[];
+  publishedOn?: string;
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({
@@ -17,10 +20,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
   contentMarkdown,
   coverImage,
   tags,
+  publishedOn
 }) => {
   return (
     <div className="flex flex-grow overflow-hidden">
-      <Card className="flex flex-col w-full my-4 p-4 overflow-y-auto">
+      <Card className="flex flex-col w-full mb-4 p-4 overflow-y-auto">
         {coverImage && <img src={coverImage} alt={title} className="mb-4" />}
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -31,14 +35,18 @@ const BlogCard: React.FC<BlogCardProps> = ({
             ))}
           </div>
         )}
+        <p className="text-sm mb-4">
+          Published on: {publishedOn}
+        </p>
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
         <h3 className="text-md mb-4">{subtitle}</h3>
-        <div
+        {/* <div
           className="flex-grow"
           dangerouslySetInnerHTML={{
             __html: contentMarkdown || '',
           }}
-        />
+        /> */}
+        <MarkdownToHtml contentMarkdown={contentMarkdown as string} />
       </Card>
     </div>
   );

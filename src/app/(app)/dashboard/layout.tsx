@@ -45,7 +45,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <main className="flex flex-col">
-      <header className="flex items-center justify-between px-8 h-16 bg-blue-600 text-white">
+      {/* <header className="flex items-center justify-between px-8 h-16 bg-blue-600 text-white">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <h1 className="text-lg font-semibold">AI Dashboard</h1>
           <nav className="flex gap-4">
@@ -54,10 +54,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </Link>
           </nav>
         </div>
-      </header>
+      </header> */}
       <ResizablePanelGroup direction="horizontal">
         {/* Chat History - Sidebar */}
-        <ResizablePanel defaultSize={20} minSize={10}>
+        <ResizablePanel defaultSize={20} minSize={4}>
           <ChatHistory chats={chats?.conversations} isLoading={isLoading} />
         </ResizablePanel>
 

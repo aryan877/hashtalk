@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import React from 'react';
+import BlogCard from '@/app/(app)/components/BlogCard';
+import { Button } from '@/components/ui/button';
+import { Card, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -8,20 +10,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { z } from 'zod';
-import { Card, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
+import { useToast } from '@/components/ui/use-toast';
+import { Conversation } from '@/model/Conversation';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Conversation } from '@/model/Conversation';
-import { useToast } from '@/components/ui/use-toast';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
-dayjs.extend(advancedFormat);
 import { Clipboard } from 'lucide-react';
-import BlogCard from '@/app/(app)/components/BlogCard';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+dayjs.extend(advancedFormat);
 
 interface LoadedBlogProps {
   conversation: Conversation | undefined;
@@ -42,7 +42,7 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
   return (
     <section
       className="flex flex-col w-full p-4 border-r"
-      style={{ height: 'calc(100vh - 9rem)' }}
+      style={{ height: 'calc(100vh - 5rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
 
@@ -68,10 +68,6 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                 Copy
               </Button>
             </div>
-            <p className="text-sm mb-4">
-              Published on:{' '}
-              {dayjs(conversation.blogPublishDate).format('Do MMM YY, h:mm A')}
-            </p>
           </div>
           <BlogCard
             title={conversation.blogTitle}
@@ -79,6 +75,9 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
             contentMarkdown={conversation.markdown}
             coverImage={conversation.coverImage}
             tags={conversation.tags}
+            publishedOn={dayjs(conversation.blogPublishDate).format(
+              'Do MMM YY, h:mm A'
+            )}
           />
         </>
       ) : (

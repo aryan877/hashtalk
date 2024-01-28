@@ -1,5 +1,5 @@
-import React from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -8,14 +8,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
+import { markdownToHtml } from '@/helpers/renderer/markdownToHtml';
+import { IMessage } from '@/model/Message';
 import { MessageSchema } from '@/schemas/messageSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { IMessage } from '@/model/Message';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import ReactMarkdown from 'react-markdown';
+import { z } from 'zod';
 import { TemporaryIMessage } from '../dashboard/chat/[id]/page';
 
 interface AIChatSectionProps {
@@ -60,7 +62,7 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
   return (
     <section
       className="w-full p-4 flex flex-col"
-      style={{ height: 'calc(100vh - 9rem)' }}
+      style={{ height: 'calc(100vh - 5rem)' }}
     >
       <h2 className="text-lg font-semibold mb-4">AI Chat</h2>
       <div className="flex-grow overflow-auto p-4 pb-8 bg-gray-200">
@@ -87,13 +89,20 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
                 </Avatar>
               )}
               <div
-                className={`p-4  max-w-md rounded-lg ${
+                className={`p-4  max-w-lg rounded-lg ${
                   message.messageType === 'ai'
                     ? 'bg-gray-100'
-                    : 'bg-blue-600 text-white'
+                    : 'bg-blue-200 text-white'
                 }`}
               >
-                {message.message}
+                {/* <ReactMarkdown>{message.message}</ReactMarkdown> */}
+                {/* {markdownToHtml(message.message)} */}
+                <div
+                  className="flex-grow hashnode-content-style"
+                  dangerouslySetInnerHTML={{
+                    __html: markdownToHtml(message.message),
+                  }}
+                />
               </div>
               {message.messageType === 'human' && (
                 <Avatar>
@@ -142,9 +151,9 @@ const AIChatSection: React.FC<AIChatSectionProps> = ({
               </FormItem>
             )}
           />
-          <Button disabled={!chatEnabled} type="submit">
+          {/* <Button disabled={!chatEnabled} type="submit">
             Send Message
-          </Button>
+          </Button> */}
         </form>
       </Form>
     </section>
