@@ -54,7 +54,7 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>
+            <Button className='mb-4' type="submit" disabled={isLoading}>
               Load Blog
             </Button>
           </form>
