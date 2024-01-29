@@ -40,7 +40,7 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
       {
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mb-4">
             <FormField
               control={form.control}
               name="blogUrl"
@@ -54,7 +54,7 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
                 </FormItem>
               )}
             />
-            <Button className='mb-4' type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading}>
               Load Blog
             </Button>
           </form>

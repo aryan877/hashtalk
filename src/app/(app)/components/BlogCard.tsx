@@ -42,7 +42,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
               ))}
             </div>
           )}
-          <p className="text-sm mb-4">Published on: {publishedOn}</p>
+          {publishedOn && <p className="text-sm mb-4">Published on: {publishedOn}</p>}
           <h2 className="text-lg font-semibold mb-2">{title}</h2>
           <h3 className="text-md mb-4">{subtitle}</h3>
           {/* <div
