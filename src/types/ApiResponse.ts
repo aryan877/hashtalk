@@ -6,6 +6,7 @@ export interface ConversationsApiResponse {
   success: boolean;
   message: string;
   conversations: Conversation[];
+  nextCursor: string;
 }
 
 export interface ChatMessagesApiResponse {

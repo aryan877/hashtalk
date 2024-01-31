@@ -34,6 +34,7 @@
     "@tailwindcss/typography": "^0.5.10",
     "@tanstack/react-query": "^5.17.19",
     "ai": "^2.2.31",
+    "apollo-link-error": "^1.1.13",
     "aws-sdk": "^2.1543.0",
     "axios": "^1.6.3",
     "bcryptjs": "^2.4.3",

@@ -1,0 +1,28 @@
+query Me {
+  me {
+    id
+    username
+    name
+    bio {
+      markdown
+      html
+      text
+    }
+    profilePicture
+    socialMediaLinks {
+      website
+      github
+      twitter
+      instagram
+      facebook
+      stackoverflow
+      linkedin
+      youtube
+    }
+    followersCount
+    followingsCount
+    tagline
+    dateJoined
+    location
+  }
+}

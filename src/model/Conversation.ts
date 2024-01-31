@@ -26,7 +26,7 @@ const ConversationSchema: Schema<Conversation> = new mongoose.Schema(
     },
     blogSubtitle: {
       type: String,
-      required: false
+      required: false,
     },
     blogPublishDate: {
       type: Date,
@@ -41,7 +41,7 @@ const ConversationSchema: Schema<Conversation> = new mongoose.Schema(
       required: [true, 'Markdown content is required'],
     },
     coverImage: {
-      type: String, 
+      type: String,
       required: false,
     },
     tags: {

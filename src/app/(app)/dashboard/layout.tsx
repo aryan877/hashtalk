@@ -7,19 +7,20 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { ConversationsApiResponse } from '@/types/ApiResponse';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Link from 'next/link';
 import React from 'react';
 import ChatHistory from '../components/ChatHistory';
+import { Button } from '@/components/ui/button';
 
 interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-// Function to fetch chats
-async function fetchChats() {
-  const { data } = await axios.get('/api/get-chats');
+async function fetchChats(pageParam?: number) {
+  const page = pageParam || 1;
+  const { data } = await axios.get(`/api/get-chats?page=${page}`);
   return data;
 }
 
@@ -30,18 +31,24 @@ export default function RootLayout({ children }: RootLayoutProps) {
     isLoading,
     isError,
     error,
-  } = useQuery<ConversationsApiResponse>({
+    fetchNextPage,
+    isFetchingNextPage,
+    hasNextPage
+  } = useInfiniteQuery<ConversationsApiResponse>({
     queryKey: ['getChats'],
-    queryFn: fetchChats,
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = allPages.length + 1;
+      return lastPage.nextCursor ? nextPage : undefined;
+    },
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => fetchChats(pageParam as number),
   });
-
-  // if (isLoading) {
-  //   return <div>Loading chats...</div>;
-  // }
 
   if (isError) {
     return <div>Error loading chats: {error?.message || 'Unknown error'}</div>;
   }
+
+  console.log(chats)
 
   return (
     <main className="flex flex-col">
@@ -58,9 +65,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <ResizablePanelGroup direction="horizontal">
         {/* Chat History - Sidebar */}
         <ResizablePanel defaultSize={20} minSize={4}>
-          <ChatHistory chats={chats?.conversations} isLoading={isLoading} />
+          <ChatHistory
+            chats={chats?.pages.flatMap((page) => page.conversations)}
+            isLoading={isLoading}
+            fetchNextPage={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+          />
         </ResizablePanel>
-
         <ResizableHandle />
         {/* Main Content Area */}
         <ResizablePanel defaultSize={80} minSize={20}>
