@@ -10,19 +10,30 @@ import { ConversationsApiResponse } from '@/types/ApiResponse';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Link from 'next/link';
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
+import { fetchTokenFromDatabase } from '@/lib/fetchTokenFromDatabase';
 
 import ChatHistory from './components/ChatHistory';
+import { useToken } from '@/context/TokenContext';
 
 interface RootLayoutProps {
   children: React.ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const { setToken } = useToken();
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fetchedToken = await fetchTokenFromDatabase();
+      setToken(fetchedToken);
+    };
+
+    fetchToken();
+  }, [setToken]);
 
   return (
     <>
-
       <div>
         <Navbar />
         <div className="mt-20">

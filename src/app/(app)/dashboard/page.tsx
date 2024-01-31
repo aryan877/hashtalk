@@ -7,7 +7,7 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { toast, useToast } from '@/components/ui/use-toast';
-import client from '@/lib/apolloClient';
+import { useApolloClient } from '@apollo/client';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
 import {
@@ -51,6 +51,7 @@ function ChatDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApolloError>();
   const router = useRouter();
+  const client = useApolloClient();
 
   const queryClient = useQueryClient();
 

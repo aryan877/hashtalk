@@ -55,16 +55,12 @@ import {
   MeQuery,
   MeQueryVariables,
 } from '../../../../../generated/graphql';
+import { useToken } from '@/context/TokenContext';
 
 function Settings() {
+  const queryClient = useQueryClient();
   const [showToken, setShowToken] = useState(false);
-  const { data: patData, isLoading: isLoadingPAT } = useReactQuery<
-    PatTokenApiResponse,
-    Error
-  >({
-    queryKey: ['pat'],
-    queryFn: () => axios.get('/api/pat').then((response) => response.data),
-  });
+  const { token, setToken } = useToken();
 
   const messageForm = useForm<z.infer<typeof PersonalTokenSchema>>({
     resolver: zodResolver(PersonalTokenSchema),
@@ -76,7 +72,8 @@ function Settings() {
     z.infer<typeof PersonalTokenSchema>
   >({
     mutationFn: (tokenData) => axios.post(`/api/pat`, tokenData),
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
+      setToken(variables.token);
       toast({
         title: 'Success',
         description: response.data.message,
@@ -91,14 +88,32 @@ function Settings() {
     },
   });
 
+  const deleteMutation = useMutation<AxiosResponse<StandardApiResponse>, Error>(
+    {
+      mutationFn: () => axios.delete(`/api/pat`),
+      onSuccess: async (response) => {
+        setToken('');
+        toast({
+          title: 'Success',
+          description: response.data.message,
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Something went wrong',
+          description: error.message,
+          variant: 'destructive',
+        });
+      },
+    }
+  );
+
   // Fetch me
   const {
     data: meData,
     loading: meLoading,
     error: meError,
   } = useQuery<MeQuery, MeQueryVariables>(MeDocument, {});
-
-  console.log(meData);
 
   const {
     handleSubmit,
@@ -127,15 +142,13 @@ function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isLoadingPAT ? (
-              <p>Fetching user data...</p>
-            ) : patData?.patToken ? (
+            {token ? (
               <div>
                 <Label>Token</Label>
                 <div className="flex items-center">
                   <Input
                     type={showToken ? 'text' : 'password'}
-                    value={patData.patToken}
+                    value={token}
                     readOnly
                   />
                   <Button
@@ -165,7 +178,13 @@ function Settings() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction>Delete</AlertDialogAction>
+                      <AlertDialogAction
+                        onClick={() => {
+                          deleteMutation.mutate();
+                        }}
+                      >
+                        Delete
+                      </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -203,7 +222,7 @@ function Settings() {
             )}
           </CardContent>
         </Card>
-        {patData?.patToken && (
+        {token && !meLoading && !meError && (
           <Card className="w-full max-w-md mt-8">
             <CardHeader>
               <CardTitle>User Details</CardTitle>

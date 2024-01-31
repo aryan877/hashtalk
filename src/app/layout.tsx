@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import ApolloProviderWrapper from '@/context/ApolloProvider';
 import ReactQueryProviderWrapper from '@/context/QueryProvider';
 import Head from 'next/head';
+import { TokenProvider } from '@/context/TokenContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,19 +20,19 @@ interface RootLayoutProps {
 }
 
 export default async function RootLayout({ children }: RootLayoutProps) {
-
   return (
     <html lang="en">
-
       <ReactQueryProviderWrapper>
-        <ApolloProviderWrapper>
-          <AuthProvider>
-            <body className={inter.className}>
-              {children}
-              <Toaster />
-            </body>
-          </AuthProvider>
-        </ApolloProviderWrapper>
+        <TokenProvider>
+          <ApolloProviderWrapper>
+            <AuthProvider>
+              <body className={inter.className}>
+                {children}
+                <Toaster />
+              </body>
+            </AuthProvider>
+          </ApolloProviderWrapper>
+        </TokenProvider>
       </ReactQueryProviderWrapper>
     </html>
   );
