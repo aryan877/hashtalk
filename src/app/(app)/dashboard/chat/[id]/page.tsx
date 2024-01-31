@@ -23,7 +23,6 @@ import {
 import axios, { AxiosResponse } from 'axios';
 import { useParams } from 'next/navigation';
 import React, { useRef, useState } from 'react';
-import { ImperativePanelHandle } from 'react-resizable-panels';
 import { z } from 'zod';
 import AIChatSection from '../../../components/AIChatSection';
 import LoadedBlog from '../components/LoadedBlog';
@@ -223,17 +222,6 @@ function ChatPage() {
     setSendingHumanMessage(true);
   };
 
-  const refA = useRef<ImperativePanelHandle>(null);
-  const refB = useRef<ImperativePanelHandle>(null);
-
-  const expandBlogPanel = () => {
-    refB.current?.resize(12)
-  }
-
-  const expandChatPanel = () => {
-    refA.current?.resize(12);
-  }
-
   return (
     <ResizablePanelGroup direction="horizontal">
       {/* Blog Loader Section */}
@@ -241,7 +229,6 @@ function ChatPage() {
         defaultSize={50}
         minSize={2}
         maxSize={98}
-        ref={refA}
       >
         {/* <div className="panel-header">
           <button onClick={expandBlogPanel}>Expand Blog</button>
@@ -259,7 +246,6 @@ function ChatPage() {
         defaultSize={50}
         minSize={2}
         maxSize={98}
-        ref={refB}
       >
         {/* <div className="panel-header">
           <button onClick={expandChatPanel}>Expand Chat</button>

@@ -172,9 +172,7 @@ function ChatDashboard() {
     }
   };
 
-  const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {
-    //chat with ai
-  };
+  const onMessageSubmit = async (data: z.infer<typeof MessageSchema>) => {};
 
   return (
     <ResizablePanelGroup direction="horizontal">

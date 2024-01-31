@@ -21,9 +21,7 @@ export async function GET(
       { status: 401 }
     );
   }
-
-  console.log(user._id);
-
+  
   try {
     // Check if the conversation belongs to the user
     const conversation = await ConversationModel.findOne({

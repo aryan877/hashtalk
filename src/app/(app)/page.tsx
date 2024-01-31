@@ -78,7 +78,7 @@ export default function Home() {
                     className="flex-1"
                     placeholder="Type your message here..."
                     type="text"
-                    disabled
+                    readOnly
                   />
                   <Button>Send</Button>
                 </div>

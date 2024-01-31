@@ -28,3 +28,9 @@ export interface StandardApiResponse {
   success: boolean;
   message: string;
 }
+
+export interface PatTokenApiResponse {
+  success: boolean;
+  message: string;
+  patToken: string;
+}

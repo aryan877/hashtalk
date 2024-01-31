@@ -7,9 +7,9 @@ export interface User extends Document {
   verifyCode: string;
   verifyCodeExpiry: Date;
   isVerified: boolean;
+  patToken?: string;
 }
 
-// Updated User schema
 const UserSchema: Schema<User> = new mongoose.Schema({
   username: {
     type: String,
@@ -38,6 +38,9 @@ const UserSchema: Schema<User> = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
+  },
+  patToken: {
+    type: String,
   },
 });
 

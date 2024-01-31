@@ -6,6 +6,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { Button } from './ui/button';
+import {
+  Key,
+  LogOut,
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuContent,
+  DropdownMenu,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 function Navbar() {
   const { data: session } = useSession();
@@ -20,14 +35,37 @@ function Navbar() {
         </Link>
         <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
           {session ? (
-            <>
-              <span className="text-base md:text-lg">
-                Welcome, {user.username || user.email}
-              </span>
-              <Button onClick={() => signOut()} className="w-full md:w-auto">
-                Logout
-              </Button>
-            </>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Menu</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem disabled>
+                    <span> Welcome, {user.username || user.email}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link href='/dashboard/settings'>
+                      <span> Set Personal Access Token</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() => signOut()}
+                      className="w-full md:w-auto"
+                    >
+                      Logout
+                    </Button>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link href="/sign-in">
               <Button className="w-full md:w-auto">Login</Button>
