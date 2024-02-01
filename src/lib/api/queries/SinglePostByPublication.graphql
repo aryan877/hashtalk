@@ -1,4 +1,8 @@
-query SinglePostByPublication($slug: String!, $host: String!) {
+query SinglePostByPublication(
+  $slug: String!
+  $host: String!
+  $userIds: [ID!]
+) {
   publication(host: $host) {
     ...Publication
     posts(first: 0) {
@@ -6,6 +10,16 @@ query SinglePostByPublication($slug: String!, $host: String!) {
     }
     post(slug: $slug) {
       ...PostFull
+      likedBy(first: 1, filter: { userIds: $userIds }) {
+        edges {
+          node {
+            id
+            name
+            username
+          }
+          reactionCount
+        }
+      }
     }
   }
 }
@@ -56,12 +70,11 @@ fragment PostFull on Post {
     username
     id
     name
+    profilePicture
     bio {
       html
     }
-    profilePicture
   }
-  title
   content {
     markdown
     html

@@ -1,0 +1,11 @@
+mutation LikePost($input: LikePostInput!) {
+  likePost(input: $input) {
+    post {
+      id
+      slug
+      title
+      subtitle
+      reactionCount
+    }
+  }
+}

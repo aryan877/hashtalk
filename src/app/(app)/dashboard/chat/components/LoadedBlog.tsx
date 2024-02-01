@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { LockIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +61,7 @@ import {
   SinglePostByPublicationQueryVariables,
 } from '../../../../../../generated/graphql';
 import LikeBlogButton from '@/app/(app)/components/LikeBlogButton';
+import { useToken } from '@/context/TokenContext';
 dayjs.extend(advancedFormat);
 
 interface LoadedBlogProps {
@@ -69,6 +71,7 @@ interface LoadedBlogProps {
 
 const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
   const [post, setPost] = useState<SinglePostByPublicationQuery | null>(null);
+  const { token } = useToken();
 
   const { toast } = useToast(); // Use toast for notifications
 
@@ -157,10 +160,10 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
         cursor: '',
       };
 
-      // Prepend the new comment edge to the existing comments
+      // Append the new comment edge
       const updatedComments = [
-        newCommentEdge,
         ...prevPost.publication.post.comments.edges,
+        newCommentEdge,
       ];
 
       // Create an updated post object with the new comments
@@ -202,8 +205,12 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
     variables: {
       slug,
       host,
+      userIds: meData?.me?.id ? [meData.me.id] : undefined,
     },
+    skip: !meData?.me?.id,
   });
+
+  console.log(fullPostData);
 
   // Update state when query data changes
   useEffect(() => {
@@ -374,118 +381,53 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
               </div>
 
               {/* Comments Button */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="ml-2">Comments</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Comments</DialogTitle>
-                  </DialogHeader>
 
-                  {post?.publication?.post?.comments.edges &&
-                  post?.publication?.post?.comments.edges.length > 0 ? (
-                    <div className="overflow-y-auto h-72 p-4 bg-gray-800 text-gray-300">
-                      {post?.publication?.post?.comments.edges.map((edge) => (
-                        <div key={edge.node.id} className="mb-6 last:mb-0">
-                          {/* Comment Section */}
-                          <div className="mb-4">
-                            {/* Comment Author's Information */}
-                            <div className="flex items-center mb-2">
-                              {edge.node.author.profilePicture && (
-                                <img
-                                  src={edge.node.author.profilePicture}
-                                  alt={edge.node.author.name}
-                                  className="w-10 h-10 rounded-full mr-2 border border-gray-700"
-                                />
-                              )}
-                              <div>
-                                <div className="font-semibold text-white">
-                                  {edge.node.author.name}
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                  @{edge.node.author.username}
-                                </div>
-                              </div>
-                            </div>
+              {post?.publication?.post && (
+                <>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="ml-2">Comments</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Comments</DialogTitle>
+                      </DialogHeader>
 
-                            {/* Comment Content */}
-                            <div className="bg-gray-300 p-3 rounded-lg">
-                              <MarkdownToHtml
-                                contentMarkdown={edge.node.content.markdown}
-                              />
-                            </div>
-
-                            {/* Reactions and Other Info */}
-                            <div className="flex items-center justify-between mt-2 text-sm text-gray-400">
-                              <span>{edge.node.totalReactions} Reactions</span>
-                              <span>
-                                {dayjs(edge.node.dateAdded).format(
-                                  'Do MMM YY, h:mm A'
-                                )}
-                              </span>
-                              {edge.node.author.username ===
-                                meData?.me.username && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button aria-label="Options">
-                                      <MoreVertical size={16} />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent>
-                                    <DropdownMenuItem
-                                      disabled={removingComment}
-                                      onSelect={() => {
-                                        deleteComment(edge.node.id);
-                                      }}
-                                    >
-                                      Delete
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onSelect={() => {
-                                        /* handle edit */
-                                      }}
-                                    >
-                                      Edit
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Replies Section */}
-                          {edge.node.replies?.edges.length > 0 && (
-                            <div className="ml-10">
-                              {edge.node.replies?.edges.map((reply) => (
-                                <div
-                                  key={reply.node.id}
-                                  className="mb-4 last:mb-0"
-                                >
-                                  {/* Reply Author's Information */}
+                      {post?.publication?.post?.comments.edges &&
+                      post?.publication?.post?.comments.edges.length > 0 ? (
+                        <div className="overflow-y-auto h-72 p-4 bg-gray-800 text-gray-300">
+                          {post?.publication?.post?.comments.edges.map(
+                            (edge) => (
+                              <div
+                                key={edge.node.id}
+                                className="mb-6 last:mb-0"
+                              >
+                                {/* Comment Section */}
+                                <div className="mb-4">
+                                  {/* Comment Author's Information */}
                                   <div className="flex items-center mb-2">
-                                    {reply.node.author.profilePicture && (
+                                    {edge.node.author.profilePicture && (
                                       <img
-                                        src={reply.node.author.profilePicture}
-                                        alt={reply.node.author.name}
-                                        className="w-8 h-8 rounded-full mr-2 border border-gray-600"
+                                        src={edge.node.author.profilePicture}
+                                        alt={edge.node.author.name}
+                                        className="w-10 h-10 rounded-full mr-2 border border-gray-700"
                                       />
                                     )}
                                     <div>
                                       <div className="font-semibold text-white">
-                                        {reply.node.author.name}
+                                        {edge.node.author.name}
                                       </div>
                                       <div className="text-sm text-gray-400">
-                                        @{reply.node.author.username}
+                                        @{edge.node.author.username}
                                       </div>
                                     </div>
                                   </div>
 
-                                  {/* Reply Content */}
+                                  {/* Comment Content */}
                                   <div className="bg-gray-300 p-3 rounded-lg">
                                     <MarkdownToHtml
                                       contentMarkdown={
-                                        reply.node.content.markdown
+                                        edge.node.content.markdown
                                       }
                                     />
                                   </div>
@@ -493,14 +435,14 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                                   {/* Reactions and Other Info */}
                                   <div className="flex items-center justify-between mt-2 text-sm text-gray-400">
                                     <span>
-                                      {reply.node.totalReactions} Reactions
+                                      {edge.node.totalReactions} Reactions
                                     </span>
                                     <span>
-                                      {dayjs(reply.node.dateAdded).format(
+                                      {dayjs(edge.node.dateAdded).format(
                                         'Do MMM YY, h:mm A'
                                       )}
                                     </span>
-                                    {reply.node.author.username ===
+                                    {edge.node.author.username ===
                                       meData?.me.username && (
                                       <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -510,13 +452,9 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
                                           <DropdownMenuItem
-                                            disabled={removingReply}
+                                            disabled={removingComment}
                                             onSelect={() => {
-                                              /* handle delete */
-                                              deleteReply(
-                                                edge.node.id,
-                                                reply.node.id
-                                              );
+                                              deleteComment(edge.node.id);
                                             }}
                                           >
                                             Delete
@@ -533,57 +471,157 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                                     )}
                                   </div>
                                 </div>
-                              ))}
-                            </div>
+
+                                {/* Replies Section */}
+                                {edge.node.replies?.edges.length > 0 && (
+                                  <div className="ml-10">
+                                    {edge.node.replies?.edges.map((reply) => (
+                                      <div
+                                        key={reply.node.id}
+                                        className="mb-4 last:mb-0"
+                                      >
+                                        {/* Reply Author's Information */}
+                                        <div className="flex items-center mb-2">
+                                          {reply.node.author.profilePicture && (
+                                            <img
+                                              src={
+                                                reply.node.author.profilePicture
+                                              }
+                                              alt={reply.node.author.name}
+                                              className="w-8 h-8 rounded-full mr-2 border border-gray-600"
+                                            />
+                                          )}
+                                          <div>
+                                            <div className="font-semibold text-white">
+                                              {reply.node.author.name}
+                                            </div>
+                                            <div className="text-sm text-gray-400">
+                                              @{reply.node.author.username}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Reply Content */}
+                                        <div className="bg-gray-300 p-3 rounded-lg">
+                                          <MarkdownToHtml
+                                            contentMarkdown={
+                                              reply.node.content.markdown
+                                            }
+                                          />
+                                        </div>
+
+                                        {/* Reactions and Other Info */}
+                                        <div className="flex items-center justify-between mt-2 text-sm text-gray-400">
+                                          <span>
+                                            {reply.node.totalReactions}{' '}
+                                            Reactions
+                                          </span>
+                                          <span>
+                                            {dayjs(reply.node.dateAdded).format(
+                                              'Do MMM YY, h:mm A'
+                                            )}
+                                          </span>
+                                          {reply.node.author.username ===
+                                            meData?.me.username && (
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button aria-label="Options">
+                                                  <MoreVertical size={16} />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent>
+                                                <DropdownMenuItem
+                                                  disabled={removingReply}
+                                                  onSelect={() => {
+                                                    /* handle delete */
+                                                    deleteReply(
+                                                      edge.node.id,
+                                                      reply.node.id
+                                                    );
+                                                  }}
+                                                >
+                                                  Delete
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onSelect={() => {
+                                                    /* handle edit */
+                                                  }}
+                                                >
+                                                  Edit
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
                           )}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No comments yet...</p>
-                  )}
+                      ) : (
+                        <p>No comments yet...</p>
+                      )}
 
-                  <DialogFooter>
-                    <Form {...commentForm}>
-                      <form
-                        onSubmit={handleSubmit(handleFormSubmit)}
-                        className="flex items-end space-x-2 w-full"
-                      >
-                        <FormField
-                          control={control}
-                          name="comment"
-                          render={({ field }) => (
-                            <div className="flex-grow">
-                              <FormItem>
-                                <FormLabel>Comment</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    {...field}
-                                    placeholder="Enter comment"
-                                  />
-                                </FormControl>
-                                {isSubmitted && errors.comment && (
-                                  <FormMessage>
-                                    {errors.comment.message}
-                                  </FormMessage>
-                                )}
-                              </FormItem>
-                            </div>
-                          )}
-                        />
-                        <Button
-                          type="submit"
-                          disabled={isLoading || addingComment}
-                          className="flex-shrink-0"
-                        >
-                          Comment
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <LikeBlogButton/>
+                      <DialogFooter>
+                        <Form {...commentForm}>
+                          <form
+                            onSubmit={handleSubmit(handleFormSubmit)}
+                            className="flex items-end space-x-2 w-full"
+                          >
+                            <FormField
+                              control={control}
+                              name="comment"
+                              render={({ field }) => (
+                                <div className="flex-grow">
+                                  <FormItem>
+                                    <FormLabel>Comment</FormLabel>
+                                    <FormControl>
+                                      <Textarea
+                                        {...field}
+                                        placeholder="Enter comment"
+                                      />
+                                    </FormControl>
+                                    {isSubmitted && errors.comment && (
+                                      <FormMessage>
+                                        {errors.comment.message}
+                                      </FormMessage>
+                                    )}
+                                  </FormItem>
+                                </div>
+                              )}
+                            />
+                            <Button
+                              type="submit"
+                              disabled={isLoading || addingComment}
+                              className="flex-shrink-0"
+                            >
+                              Comment
+                            </Button>
+                          </form>
+                        </Form>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <LikeBlogButton
+                    postId={post?.publication?.post?.id}
+                    totalReactions={post?.publication?.post?.reactionCount ?? 0}
+                    myReactions={
+                      post?.publication?.post?.likedBy?.edges[0]
+                        ?.reactionCount ?? 0
+                    }
+                  />
+                </>
+              )}
+              {!token && (
+                <Button variant="outline">
+                  <LockIcon className="h-4 w-4 mr-2" />
+                  Add PAT token to Unlock
+                </Button>
+              )}
             </div>
           </div>
           <BlogCard
@@ -595,6 +633,7 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
             publishedOn={dayjs(conversation.blogPublishDate).format(
               'Do MMM YY, h:mm A'
             )}
+            readTime={post?.publication?.post?.readTimeInMinutes}
           />
         </>
       ) : (
