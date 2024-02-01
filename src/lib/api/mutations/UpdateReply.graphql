@@ -1,0 +1,19 @@
+mutation UpdateReply($input: UpdateReplyInput!) {
+  updateReply(input: $input) {
+    reply {
+      id
+      content {
+        markdown
+      }
+      author {
+        name
+        username
+        profilePicture
+      }
+      dateAdded
+      stamp
+      totalReactions
+      myTotalReactions
+    }
+  }
+}

@@ -108,6 +108,7 @@ fragment PostFull on Post {
       node {
         id
         totalReactions
+        myTotalReactions
         content {
           markdown
         }

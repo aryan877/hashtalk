@@ -40,7 +40,7 @@ const LikeBlogButton = ({
     LikePostDocument,
     {
       onCompleted: (response) => {
-        setLocalTotalReactions(response.likePost.post?.reactionCount as number);
+        setLocalTotalReactions(response.likePost.post?.reactionCount ?? 0);
         setLocalMyReactions((prevMyLikes) => prevMyLikes + 1);
       },
       onError: (error) => {
@@ -58,14 +58,19 @@ const LikeBlogButton = ({
       return;
     }
     setIsAnimating(true);
-    await likePost({
-      variables: {
-        input: {
-          postId,
+    try {
+      await likePost({
+        variables: {
+          input: {
+            postId,
+          },
         },
-      },
-    });
-    setTimeout(() => setIsAnimating(false), 1000);
+      });
+    } catch (error) {
+      console.error('Error executing likePost', error);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 1000);
+    }
   };
 
   const heartIconStyle =

@@ -62,6 +62,7 @@ import {
 } from '../../../../../../generated/graphql';
 import LikeBlogButton from '@/app/(app)/components/LikeBlogButton';
 import { useToken } from '@/context/TokenContext';
+import LikeCommentButton from '@/app/(app)/components/LikeCommentButton';
 dayjs.extend(advancedFormat);
 
 interface LoadedBlogProps {
@@ -434,9 +435,12 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
 
                                   {/* Reactions and Other Info */}
                                   <div className="flex items-center justify-between mt-2 text-sm text-gray-400">
-                                    <span>
-                                      {edge.node.totalReactions} Reactions
-                                    </span>
+            
+                                    <LikeCommentButton
+                                      myReactions={edge.node.myTotalReactions}
+                                      commentId={edge.node.id}
+                                      totalReactions={edge.node.totalReactions}
+                                    />
                                     <span>
                                       {dayjs(edge.node.dateAdded).format(
                                         'Do MMM YY, h:mm A'
