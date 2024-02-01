@@ -48,7 +48,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return <div>Error loading chats: {error?.message || 'Unknown error'}</div>;
   }
 
-  console.log(chats)
 
   return (
     <main className="flex flex-col">

@@ -138,9 +138,19 @@ function Settings() {
           <CardHeader>
             <CardTitle>Personal Access Token</CardTitle>
             <CardDescription>
-              Enter your personal access token below.
+              Enter your personal access token for Hashnode. You can generate
+              and find your token in
+              <a
+                href="https://hashnode.com/settings/developer"
+                target="_blank"
+                className="text-blue-600 hover:text-blue-800"
+              >
+                your Hashnode account settings
+              </a>
+              .
             </CardDescription>
           </CardHeader>
+
           <CardContent className="space-y-4">
             {token ? (
               <div>

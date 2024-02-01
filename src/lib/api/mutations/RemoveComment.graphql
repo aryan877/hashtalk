@@ -1,0 +1,19 @@
+mutation RemoveComment($input: RemoveCommentInput!) {
+  removeComment(input: $input) {
+    comment {
+      id
+      content {
+        markdown
+      }
+      author {
+        name
+        username
+        profilePicture
+      }
+      dateAdded
+      stamp
+      totalReactions
+      myTotalReactions
+    }
+  }
+}

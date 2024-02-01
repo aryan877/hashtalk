@@ -80,7 +80,6 @@ function ChatPage() {
     queryFn: () => fetchMessages(id),
   });
 
-
   const mutation = useMutation<
     AxiosResponse<ChatMessageApiResponse>,
     Error,
@@ -225,11 +224,7 @@ function ChatPage() {
   return (
     <ResizablePanelGroup direction="horizontal">
       {/* Blog Loader Section */}
-      <ResizablePanel
-        defaultSize={50}
-        minSize={2}
-        maxSize={98}
-      >
+      <ResizablePanel defaultSize={50} minSize={2} maxSize={98}>
         {/* <div className="panel-header">
           <button onClick={expandBlogPanel}>Expand Blog</button>
         </div> */}
@@ -242,11 +237,7 @@ function ChatPage() {
       <ResizableHandle />
 
       {/* AI Chat Section */}
-      <ResizablePanel
-        defaultSize={50}
-        minSize={2}
-        maxSize={98}
-      >
+      <ResizablePanel defaultSize={50} minSize={2} maxSize={98}>
         {/* <div className="panel-header">
           <button onClick={expandChatPanel}>Expand Chat</button>
         </div> */}

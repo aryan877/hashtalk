@@ -32,25 +32,40 @@ const BlogCard: React.FC<BlogCardProps> = ({
       ></style>
       <div className="flex flex-grow overflow-hidden">
         <Card className="flex flex-col w-full mb-4 p-4 overflow-y-auto">
-          {coverImage && <img src={coverImage} alt={title} className="mb-4" />}
+          {/* Cover Image */}
+          {coverImage && (
+            <img
+              src={coverImage}
+              alt={title}
+              className="mb-6 w-full object-cover rounded-lg"
+            />
+          )}
+
+          {/* Tags */}
           {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex flex-wrap gap-3 mb-4">
               {tags.map((tag, index) => (
-                <Badge key={index} className="mb-2 mr-2">
+                <Badge key={index} className="mb-1">
                   {tag}
                 </Badge>
               ))}
             </div>
           )}
-          {publishedOn && <p className="text-sm mb-4">Published on: {publishedOn}</p>}
-          <h2 className="text-lg font-semibold mb-2">{title}</h2>
-          <h3 className="text-md mb-4">{subtitle}</h3>
-          {/* <div
-          className="flex-grow"
-          dangerouslySetInnerHTML={{
-            __html: contentMarkdown || '',
-          }}
-        /> */}
+
+          {/* Published Date */}
+          {publishedOn && (
+            <p className="text-sm text-gray-600 mb-6">
+              Published on: {publishedOn}
+            </p>
+          )}
+
+          {/* Title and Subtitle */}
+          <div className="prose prose-xl mx-auto text-center">
+            <h2 className="font-semibold mb-3 text-4xl">{title}</h2>
+            <h3 className="text-xl mb-6">{subtitle}</h3>
+          </div>
+
+          {/* Markdown Content */}
           <MarkdownToHtml contentMarkdown={contentMarkdown as string} />
         </Card>
       </div>
