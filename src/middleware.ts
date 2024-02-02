@@ -1,45 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Import getSession from next-auth/react for server-side usage
-import { getSession } from 'next-auth/react';
-
-// Ensure your middleware export is correctly set up
+import { getToken } from 'next-auth/jwt';
 export { default } from 'next-auth/middleware';
 
 export const config = {
   matcher: ['/dashboard/:path*', '/sign-in', '/sign-up', '/', '/verify/:path*'],
 };
 
-export async function middleware(req: NextRequest) {
-  // Create a request-like object that contains the cookies header for getSession
-  const requestForNextAuth = {
-    headers: {
-      cookie: req.headers.get('cookie') as string,
-    },
-  };
+export async function middleware(request: NextRequest) {
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName:
+      process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+  });
 
-  // Retrieve the session using the adapted request object
-  const session = await getSession({ req: requestForNextAuth });
-
-  const url = req.nextUrl;
+  const url = request.nextUrl;
 
   // Redirect to dashboard if the user is already authenticated
   // and trying to access sign-in, sign-up, or home page
   if (
-    session &&
+    token &&
     (url.pathname.startsWith('/sign-in') ||
       url.pathname.startsWith('/sign-up') ||
       url.pathname.startsWith('/verify') ||
       url.pathname === '/')
   ) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Redirect to sign-in if trying to access protected routes without a session
-  if (!session && url.pathname.startsWith('/dashboard')) {
-    const signInPage = '/sign-in';
-    const signInUrl = new URL(signInPage, req.url);
-    signInUrl.searchParams.append('callbackUrl', req.url);
-    return NextResponse.redirect(signInUrl);
+  if (!token && url.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
   return NextResponse.next();
