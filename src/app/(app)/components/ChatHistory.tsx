@@ -23,7 +23,7 @@ import {
   FetchNextPageOptions,
 } from '@tanstack/react-query';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface ChatHistoryProps {
   chats: Conversation[] | undefined;
@@ -44,9 +44,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   const params = useParams();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
 
   const handleDeleteChat = async (chatId: string) => {
     try {
+      setDeletingChatId(chatId);
       toast({
         title: 'Deleting Chat...',
       });
@@ -80,6 +82,8 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         description: 'There was an error deleting the chat.',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingChatId(null);
     }
   };
 
@@ -148,9 +152,12 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-48">
                               <DropdownMenuItem
+                                disabled={deletingChatId === chat._id}
                                 onClick={() => handleDeleteChat(chat._id)}
                               >
-                                Delete Chat
+                                {deletingChatId === chat._id
+                                  ? 'Deleting...'
+                                  : 'Delete Chat'}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
