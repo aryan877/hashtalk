@@ -7,17 +7,19 @@ import { motion } from 'framer-motion';
 import { LikeCommentDocument } from '../../../../generated/graphql';
 import { useMutation } from '@apollo/client';
 
-interface LikeBlogButtonProps {
+interface LikeCommentButtonProps {
   commentId: string;
   totalReactions: number;
   myReactions: number;
+  handleLikeIncrement: (commentId: string) => void;
 }
 
-const LikeBlogButton = ({
+const LikeCommentButton = ({
   commentId,
   totalReactions,
   myReactions,
-}: LikeBlogButtonProps) => {
+  handleLikeIncrement,
+}: LikeCommentButtonProps) => {
   const [localTotalReactions, setLocalTotalReactions] =
     useState(totalReactions);
   const [localMyReactions, setLocalMyReactions] = useState(myReactions);
@@ -30,6 +32,7 @@ const LikeBlogButton = ({
       onCompleted: (data) => {
         setLocalTotalReactions(data.likeComment.comment?.totalReactions ?? 0);
         setLocalMyReactions(localMyReactions + 1);
+        handleLikeIncrement(commentId);
       },
       onError: (error) => {
         console.error('Error liking comment', error);
@@ -66,8 +69,8 @@ const LikeBlogButton = ({
 
   return (
     <div className="flex items-center">
-      <Button
-        variant="outline"
+      <button
+        className="flex items-center focus:outline-none focus:ring-0 active:ring-0"
         onClick={handleLike}
         disabled={!canUserLikeMore || likingComment}
       >
@@ -92,9 +95,9 @@ const LikeBlogButton = ({
             +1
           </motion.span>
         )}
-      </Button>
+      </button>
     </div>
   );
 };
 
-export default LikeBlogButton;
+export default LikeCommentButton;

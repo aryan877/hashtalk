@@ -6,6 +6,7 @@ mutation UpdateComment($input: UpdateCommentInput!) {
         markdown
       }
       author {
+        id
         name
         username
         profilePicture

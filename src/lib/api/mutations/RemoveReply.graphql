@@ -6,6 +6,7 @@ mutation RemoveReply($input: RemoveReplyInput!) {
         markdown
       }
       author {
+        id
         name
         username
         profilePicture

@@ -6,6 +6,7 @@ mutation LikeComment($input: LikeCommentInput!) {
         markdown
       }
       author {
+        id
         name
         username
         profilePicture

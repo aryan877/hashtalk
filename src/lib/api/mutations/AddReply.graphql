@@ -6,6 +6,7 @@ mutation AddReply($input: AddReplyInput!) {
         markdown
       }
       author {
+        id
         name
         username
         profilePicture
