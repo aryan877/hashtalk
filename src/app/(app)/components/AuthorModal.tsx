@@ -1,10 +1,13 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar';
-import { Plus, Twitter, UserCheck } from 'lucide-react';
-import dayjs from 'dayjs'; // Import dayjs for date formatting
 import { Separator } from '@/components/ui/separator';
+import { useMutation } from '@apollo/client';
+import dayjs from 'dayjs';
+import { Plus, Twitter, UserCheck } from 'lucide-react';
+import { ToggleFollowUserDocument } from '../../../../generated/graphql';
 
 interface AuthorModalProps {
+  me: string;
   authorName: string;
   authorHandle: string;
   authorBio: string;
@@ -16,9 +19,11 @@ interface AuthorModalProps {
   following: boolean;
   followersCount: number;
   followingsCount: number;
+  toggleFollowingState: (following: boolean) => void;
 }
 
 export default function AuthorModal({
+  me,
   authorName,
   authorHandle,
   authorBio,
@@ -30,7 +35,32 @@ export default function AuthorModal({
   following,
   followersCount,
   followingsCount,
+  toggleFollowingState,
 }: AuthorModalProps) {
+  const [toggleFollowing, { loading: togglingFollowing }] = useMutation(
+    ToggleFollowUserDocument,
+    {
+      onCompleted: (data) => {
+        if (data.toggleFollowUser.user) {
+          toggleFollowingState(data.toggleFollowUser.user.following);
+        }
+      },
+      onError: (error) => {
+        console.error('Error toggling follow status:', error.message);
+      },
+    }
+  );
+
+  const handleFollowClick = async () => {
+    try {
+      await toggleFollowing({
+        variables: {
+          username: authorHandle,
+        },
+      });
+    } catch (error) {}
+  };
+
   return (
     <div className="flex flex-col items-start justify-start my-4 space-y-4">
       <Avatar className="w-16 h-16">
@@ -56,9 +86,21 @@ export default function AuthorModal({
           </span>
         )}
       </div>
-      <Button>
-        <Plus className="mr-2" /> Follow on Hashnode
-      </Button>
+      {me !== authorHandle && <Button
+        disabled={togglingFollowing}
+        onClick={handleFollowClick}
+        className="flex items-center"
+      >
+        {following ? (
+          <>
+            <UserCheck className="mr-2" /> Following
+          </>
+        ) : (
+          <>
+            <Plus className="mr-2" /> Follow on Hashnode
+          </>
+        )}
+      </Button>}
       <p className="text-gray-600">{authorBio}</p>
       <Separator />
       {authorProfileLink && (

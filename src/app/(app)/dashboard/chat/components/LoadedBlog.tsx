@@ -806,6 +806,39 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
       };
     });
   };
+
+  // Function to update state when a follow status is toggled
+  const toggleFollowing = (following: boolean) => {
+    setPost((prevPost) => {
+      if (
+        !prevPost ||
+        !prevPost.publication ||
+        !prevPost.publication.post ||
+        !prevPost.publication.post.author
+      ) {
+        return prevPost;
+      }
+
+      // Toggle the following status
+      const updatedFollowingStatus = following;
+
+      const updatedPost = {
+        ...prevPost,
+        publication: {
+          ...prevPost.publication,
+          post: {
+            ...prevPost.publication.post,
+            author: {
+              ...prevPost.publication.post.author,
+              following: updatedFollowingStatus,
+            },
+          },
+        },
+      };
+
+      return updatedPost;
+    });
+  };
   // ----------------------------- END -----------------------------
 
   return (
@@ -1159,6 +1192,8 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                           <DialogTitle>Author</DialogTitle>
                         </DialogHeader>
                         <AuthorModal
+                          me={meData?.me.username || ''}
+                          toggleFollowingState={toggleFollowing}
                           authorName={
                             post.publication.post.author.name ||
                             'Unknown Author'
