@@ -86,21 +86,23 @@ export default function AuthorModal({
           </span>
         )}
       </div>
-      {me !== authorHandle && <Button
-        disabled={togglingFollowing}
-        onClick={handleFollowClick}
-        className="flex items-center"
-      >
-        {following ? (
-          <>
-            <UserCheck className="mr-2" /> Following
-          </>
-        ) : (
-          <>
-            <Plus className="mr-2" /> Follow on Hashnode
-          </>
-        )}
-      </Button>}
+      {me !== authorHandle && (
+        <Button
+          disabled={togglingFollowing}
+          onClick={handleFollowClick}
+          className="flex items-center"
+        >
+          {following ? (
+            <>
+              <UserCheck className="mr-2" /> Following
+            </>
+          ) : (
+            <>
+              <Plus className="mr-2" /> Follow on Hashnode
+            </>
+          )}
+        </Button>
+      )}
       <p className="text-gray-600">{authorBio}</p>
       <Separator />
       {authorProfileLink && (

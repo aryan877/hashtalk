@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import AuthorModal from '@/app/(app)/components/AuthorModal';
 import BlogCard from '@/app/(app)/components/BlogCard';
 import LikeBlogButton from '@/app/(app)/components/LikeBlogButton';
 import LikeCommentButton from '@/app/(app)/components/LikeCommentButton';
@@ -14,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CornerUpLeft } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +43,13 @@ import { useMutation, useQuery } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
-import { Clipboard, LockIcon, MoreVertical, Trash2 } from 'lucide-react';
+import {
+  Clipboard,
+  CornerUpLeft,
+  LockIcon,
+  MoreVertical,
+  Trash2,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -73,7 +79,6 @@ import {
   UpdateCommentDocument,
   UpdateReplyDocument,
 } from '../../../../../../generated/graphql';
-import AuthorModal from '@/app/(app)/components/AuthorModal';
 dayjs.extend(advancedFormat);
 
 interface LoadedBlogProps {
@@ -515,11 +520,11 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
             const updatedReplies: CommentReplyConnection = {
               __typename: 'CommentReplyConnection',
               edges: [
-                ...commentEdge.node.replies.edges,
+                ...(commentEdge.node.replies?.edges || []),
                 newReplyEdge,
               ] as CommentReplyEdge[],
               pageInfo: {
-                ...commentEdge.node.replies.pageInfo,
+                ...commentEdge.node.replies?.pageInfo,
               },
               totalDocuments: currentTotalDocuments + 1,
             };
