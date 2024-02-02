@@ -139,6 +139,7 @@ export async function POST(
           message: streamedResult,
           messageType: 'ai',
         });
+        
         await aiMessageDoc.save();
 
         // Send the final chunk (the complete conversation)

@@ -178,7 +178,7 @@ function ChatPage() {
           const chunk = decoder.decode(value, { stream: true });
           receivedChunks += chunk;
 
-          if (chunk.endsWith('}')) {
+          if (chunk.startsWith('{') && chunk.endsWith('}')) {
             try {
               const finalMessage = JSON.parse(chunk);
               updateQueryData(finalMessage, true);
