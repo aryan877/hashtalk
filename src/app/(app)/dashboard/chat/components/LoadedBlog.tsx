@@ -877,9 +877,8 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                   Copy
                 </Button>
               </div>
-
-              {/* Comments Modal */}
-              {post?.publication?.post && (
+              {/* Comments Modal, Author Modal, Like Button */}
+              {token && post?.publication?.post && (
                 <>
                   <Dialog>
                     <DialogTrigger asChild>

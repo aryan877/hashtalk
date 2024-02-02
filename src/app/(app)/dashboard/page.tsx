@@ -7,14 +7,13 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { toast, useToast } from '@/components/ui/use-toast';
-import { useApolloClient } from '@apollo/client';
 import { BlogUrlSchema } from '@/schemas/blogUrlSchema';
 import { MessageSchema } from '@/schemas/messageSchema';
 import {
   ConversationApiResponse,
   ConversationsApiResponse,
 } from '@/types/ApiResponse';
-import { ApolloError, useQuery } from '@apollo/client';
+import { ApolloError, useApolloClient, useQuery } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
@@ -109,7 +108,7 @@ function ChatDashboard() {
         SinglePostByPublicationQueryVariables
       >({
         query: SinglePostByPublicationDocument,
-        variables: { slug, host },
+        variables: { slug, host, userIds: undefined },
       });
 
       setBlogData(response.data);

@@ -16,6 +16,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { SinglePostByPublicationQuery } from '../../../../generated/graphql';
 import BlogCard from './BlogCard';
+import { useToken } from '@/context/TokenContext';
+import { LockIcon } from 'lucide-react';
 
 interface BlogLoaderSectionProps {
   blogData: SinglePostByPublicationQuery | null;
@@ -32,6 +34,8 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
     resolver: zodResolver(BlogUrlSchema),
   });
 
+  const { token } = useToken();
+
   return (
     <section
       className="flex flex-col w-full p-4 border-r"
@@ -40,7 +44,10 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
       <h2 className="text-lg font-semibold mb-4">Blog Entry</h2>
       {
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mb-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 mb-4"
+          >
             <FormField
               control={form.control}
               name="blogUrl"
@@ -54,8 +61,15 @@ const BlogLoaderSection: React.FC<BlogLoaderSectionProps> = ({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>
-              Load Blog
+            <Button disabled={!token || isLoading} type="submit">
+              {token ? (
+                'Load Blog'
+              ) : (
+                <>
+                  <LockIcon className="h-4 w-4 mr-2" />
+                  Add PAT token to Unlock
+                </>
+              )}
             </Button>
           </form>
         </Form>
