@@ -882,11 +882,22 @@ const LoadedBlog: React.FC<LoadedBlogProps> = ({ conversation, isLoading }) => {
                 <>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="ml-2">Comments</Button>
+                      <Button className="ml-2">
+                        {' '}
+                        {post.publication.post.comments.edges?.length
+                          ? post.publication.post.comments.edges.length
+                          : 0}{' '}
+                        Comments
+                      </Button>
                     </DialogTrigger>
                     <DialogContent className="flex flex-col w-11/12 sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2 2xl:w-1/3 min-h-[70vh] max-h-[80vh] max-w-[80%] mx-auto my-auto overflow-hidden">
                       <DialogHeader>
-                        <DialogTitle>Comments</DialogTitle>
+                        <DialogTitle>
+                          {post.publication.post.comments.edges?.length
+                            ? post.publication.post.comments.edges.length
+                            : 0}{' '}
+                          Comments
+                        </DialogTitle>
                       </DialogHeader>
 
                       {post?.publication?.post?.comments.edges &&

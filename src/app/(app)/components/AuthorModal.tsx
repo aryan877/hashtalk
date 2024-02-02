@@ -62,7 +62,7 @@ export default function AuthorModal({
   };
 
   return (
-    <div className="flex flex-col items-start justify-start my-4 space-y-4">
+    <div className="flex flex-col items-start justify-start my-4 space-y-4 max-h-[90vh] overflow-y-auto">
       <Avatar className="w-16 h-16">
         {authorAvatarSrc ? (
           <AvatarImage
