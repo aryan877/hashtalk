@@ -145,19 +145,7 @@ function ChatDashboard() {
         `/dashboard/chat/${chatCreationResponse.data.conversation._id}`
       );
 
-      const currentChats = queryClient.getQueryData<ConversationsApiResponse>([
-        'getChats',
-      ]);
-
-      if (currentChats && currentChats.conversations) {
-        queryClient.setQueryData<ConversationsApiResponse>(['getChats'], {
-          ...currentChats,
-          conversations: [
-            ...currentChats.conversations,
-            chatCreationResponse.data.conversation,
-          ],
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ['getChats'] });
 
       generateEmbeddingsToast.dismiss();
     } catch (err) {

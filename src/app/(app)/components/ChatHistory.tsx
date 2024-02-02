@@ -10,18 +10,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from '@/components/ui/use-toast';
 import { Conversation } from '@/model/Conversation';
+
 import {
   ConversationsApiResponse,
   StandardApiResponse,
 } from '@/types/ApiResponse';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  FetchNextPageOptions,
+  InfiniteQueryObserverResult,
+  useQueryClient,
+} from '@tanstack/react-query';
 import axios from 'axios';
 import { MenuIcon } from 'lucide-react';
 import Link from 'next/link';
-import {
-  InfiniteQueryObserverResult,
-  FetchNextPageOptions,
-} from '@tanstack/react-query';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
@@ -42,9 +43,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 }) => {
   const pathname = usePathname();
   const params = useParams();
-  const queryClient = useQueryClient();
   const router = useRouter();
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleDeleteChat = async (chatId: string) => {
     try {
@@ -58,25 +59,13 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
         description: 'The chat has been deleted.',
       });
 
-      // Get the current data in the cache for 'getChats'
-      const currentChats = queryClient.getQueryData<ConversationsApiResponse>([
-        'getChats',
-      ]) as ConversationsApiResponse;
-
-      // Filter out the deleted chat
-      const updatedChats =
-        currentChats?.conversations.filter((chat) => chat._id !== chatId) || [];
-
-      // Update the cache with the new array of chats
-      queryClient.setQueryData<ConversationsApiResponse>(['getChats'], {
-        ...currentChats,
-        conversations: updatedChats,
-      });
+      queryClient.invalidateQueries({ queryKey: ['getChats'] });
 
       if (params.id && params.id === chatId) {
         router.push('/dashboard');
       }
     } catch (error) {
+      console.log(error);
       toast({
         title: 'Error',
         description: 'There was an error deleting the chat.',
