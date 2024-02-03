@@ -90,6 +90,8 @@ function ChatPage() {
     onSuccess: async (response) => {
       setLoading(true);
       setSendingHumanMessage(false);
+      const streamingTempMessageId = generateTempObjectId();
+
       const humanMessage = response.data.message;
       const updateTemporaryMessage = (newContent: string) => {
         queryClient.setQueryData<ChatMessagesApiResponse>(
@@ -139,8 +141,6 @@ function ChatPage() {
       };
 
       updateQueryData(humanMessage);
-
-      const streamingTempMessageId = generateTempObjectId();
 
       const tempAIMessage: TemporaryIMessage = {
         conversationId: id,
