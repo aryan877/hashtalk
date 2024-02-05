@@ -60,13 +60,13 @@ export async function DELETE(
     }
 
     // Prepare SQS message
-    const sqsMessage = {
-      QueueUrl: process.env.SQS_DELETE_EMBEDDINGS_QUEUE_URL as string, // Delete SQS queue URL
-      MessageBody: JSON.stringify({ conversationId: chatId }),
-    };
+    // const sqsMessage = {
+    //   QueueUrl: process.env.SQS_DELETE_EMBEDDINGS_QUEUE_URL as string, // Delete SQS queue URL
+    //   MessageBody: JSON.stringify({ conversationId: chatId }),
+    // };
 
-    // Send the message to SQS
-    await sqs.sendMessage(sqsMessage).promise();
+    // // Send the message to SQS
+    // await sqs.sendMessage(sqsMessage).promise();
 
     return Response.json(
       { success: true, message: 'Chat deletion initiated' },
