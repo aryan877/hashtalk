@@ -168,26 +168,27 @@ function ChatPage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let receivedChunks = '';
-
+        let lastChunk = '';
         while (true) {
           const { value, done } = await reader.read();
           if (done) {
-            break;
-          }
-
-          const chunk = decoder.decode(value, { stream: true });
-          receivedChunks += chunk;
-
-          if (chunk.startsWith('{') && chunk.endsWith('}')) {
             try {
-              const finalMessage = JSON.parse(chunk);
+              const finalMessage = JSON.parse(lastChunk);
               updateQueryData(finalMessage, true);
             } catch (error) {
-              console.error('Error parsing final chunk:', error);
+              console.error('Error parsing the last chunk as JSON:', error);
             }
+            break;
           } else {
-            updateTemporaryMessage(receivedChunks);
-            console.log(messageData?.messages);
+            const chunk = decoder.decode(value, { stream: true });
+            if (chunk) {
+              // Update lastChunk to the current chunk
+              lastChunk = chunk;
+              if (!(chunk.startsWith('{') && chunk.endsWith('}'))) {
+                receivedChunks += chunk;
+                updateTemporaryMessage(receivedChunks);
+              }
+            }
           }
         }
       } catch (error) {
