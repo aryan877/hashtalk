@@ -38,7 +38,7 @@ export async function POST(
     await dbConnect();
 
     const model = new ChatOpenAI({
-      modelName: 'gpt-4',
+      modelName: 'gpt-3.5-turbo-1106',
       temperature: 0,
       streaming: true,
     });
